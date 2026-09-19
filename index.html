@@ -2069,7 +2069,7 @@ Dashboard Elite v6.0 aktif dengan Glowing Themes. by Gilz.</pre>
                 if (!list.length) throw new Error('lagu gak ketemu');
                 return { type:'music-list', title:'Hasil: ' + v.q, tracks: list.map(t => ({
                   title: t.trackName, artist: t.artistName, artwork: t.artworkUrl100 ? t.artworkUrl100.replace('100x100','300x300') : '',
-                  preview: t.previewUrl, album: t.collectionName, link: t.trackViewUrl,
+                  preview: t.previewUrl, album: t.collectionName, durasi: t.trackTimeMillis ? t.trackTimeMillis / 1000 : 0, link: t.trackViewUrl,
                 })) };
               } },
             { id:'mu-yt', name:'YouTube → Putar MP3', icon:'fa-brands fa-youtube', desc:'Paste link YT, putar MP3 full di web.', color:'green', slow:true,
@@ -2754,43 +2754,257 @@ Dashboard Elite v6.0 aktif dengan Glowing Themes. by Gilz.</pre>
           }
         };
 
-        /* ═══ MUSIC PLAYER ═══ */
-        let __audioEl = null;
-        function playTrack(track, btn) {
-          if (__audioEl) { __audioEl.pause(); __audioEl = null; }
-          document.querySelectorAll('.mu-playing').forEach(e => { e.classList.remove('mu-playing'); e.innerHTML = e.dataset.orig || '▶'; });
-          const src = track.full || track.preview;
-          if (!src) { alert('lagu ini gak punya audio yang bisa diputar'); return; }
-          __audioEl = new Audio(src);
-          __audioEl.controls = true;
-          __audioEl.style.width = '100%';
-          const box = document.getElementById('now-playing');
-          box.innerHTML = `
-            <div class="flex items-center gap-3">
-              ${track.artwork ? `<img src="${track.artwork}" class="w-14 h-14 rounded-xl border border-white/15"/>` : '<div class="w-14 h-14 rounded-xl bg-green-500/20 flex items-center justify-center">🎵</div>'}
-              <div class="min-w-0 flex-1"><p class="text-xs font-black text-white truncate">${(track.title||'').replace(/</g,'&lt;')}</p><p class="text-[10px] text-slate-400 truncate">${(track.artist||'').replace(/</g,'&lt;')}</p></div>
-            </div>`;
-          __audioEl.play().catch(() => {});
-          box.appendChild(__audioEl);
-          if (btn) { btn.dataset.orig = btn.innerHTML; btn.classList.add('mu-playing'); btn.innerHTML = '⏸'; }
-          glog('info', 'play: ' + track.title);
+        /* ═══ MUSIC PLAYER — kartuMusik style (persis plugin play.js) ═══ */
+        let __mpState = null; /* {audio, els, lirik, lyricEls, lyricActive, loop} */
+
+        function gelapkan(hex, faktor) {
+          const m = /^#([0-9a-f]{6})$/i.exec(String(hex || ''));
+          if (!m) return '#14101f';
+          const n = parseInt(m[1], 16);
+          const ch = (v) => Math.min(255, Math.round(v)).toString(16).padStart(2, '0');
+          return '#' + ch(((n >> 16) & 255) * faktor) + ch(((n >> 8) & 255) * faktor) + ch((n & 255) * faktor);
+        }
+        async function warnaDominan(imgUrl) {
+          try {
+            const img = await bratLoadImage(imgUrl);
+            const c = document.createElement('canvas');
+            c.width = 10; c.height = 10;
+            const ctx = c.getContext('2d');
+            ctx.drawImage(img, 0, 0, 10, 10);
+            const d = ctx.getImageData(0, 0, 10, 10).data;
+            let r = 0, g = 0, b = 0, n = 0;
+            for (let i = 0; i < d.length; i += 4) {
+              if (d[i + 3] < 200) continue;
+              r += d[i]; g += d[i + 1]; b += d[i + 2]; n++;
+            }
+            if (!n) return '#38445c';
+            const h = (v) => Math.max(28, Math.min(180, Math.round(v / n))).toString(16).padStart(2, '0');
+            return '#' + h(r) + h(g) + h(b);
+          } catch (e) { return '#38445c'; }
+        }
+        function parseLrc(text) {
+          return String(text || '').split('\n').map((l) => {
+            const m = l.match(/^\[(\d+):(\d+(?:\.\d+)?)\]\s*(.*)$/);
+            if (!m) return null;
+            return { ms: (Number(m[1]) * 60 + Number(m[2])) * 1000, teks: m[3].trim() };
+          }).filter(Boolean).sort((a, b) => a.ms - b.ms);
+        }
+        async function getLirik(track) {
+          try {
+            const r = await fetchJson(`https://lrclib.net/api/get?track_name=${encodeURIComponent(track.title)}&artist_name=${encodeURIComponent(track.artist)}${track.album ? '&album_name=' + encodeURIComponent(track.album) : ''}${track.durasi ? '&duration=' + Math.round(track.durasi) : ''}`, 12000);
+            if (r?.syncedLyrics && !r.instrumental) return parseLrc(r.syncedLyrics);
+            return [];
+          } catch (e) { return []; }
         }
 
-        function renderFeatResult(result, out) {
+        function fmtWaktu(s) {
+          if (!Number.isFinite(s)) return '0:00';
+          const m = Math.floor(s / 60), x = Math.floor(s % 60);
+          return m + ':' + String(x).padStart(2, '0');
+        }
+
+        window.muStop = function() {
+          if (__mpState?.audio) { __mpState.audio.pause(); }
+          __mpState = null;
+        };
+
+        window.muPlay = async function(track, opts = {}) {
+          muStop();
+          const host = document.getElementById('gilz-music-box');
+          if (!host) return;
+          host.classList.remove('hidden');
+          host.innerHTML = '<div class="p-6 text-center text-xs text-slate-400">⏳ Menyiapkan lagu' + (track.artwork ? ' + lirik' : '') + '...</div>';
+
+          const warna = track.artwork ? await warnaDominan(track.artwork) : '#38445c';
+          const bgAtas = gelapkan(warna, 0.7);
+          const lirik = await getLirik(track);
+          const adaLirik = lirik.length > 0;
+          const dl = track.full ? `<a href="${track.full}" target="_blank" rel="noopener" style="display:block;text-align:center;text-decoration:none;border:1.5px solid rgba(255,255,255,.22);color:rgba(255,255,255,.8);font:bold 10.5px -apple-system,sans-serif;border-radius:10px;padding:8px;margin-top:6px">⬇️ Unduh lagu full (MP3)</a>` : '';
+          const pills = [track.album ? '💿 ' + track.album : '', track.preview && !track.full ? 'Preview 30 dtk' : ''].filter(Boolean).map((p) => `<div style="color:rgba(255,255,255,.55);font:9px -apple-system,sans-serif;background:rgba(255,255,255,.08);border-radius:20px;padding:3px 9px;white-space:nowrap">${p.replace(/</g, '&lt;')}</div>`).join('');
+
+          host.innerHTML = `
+          <style>
+          #gilz-music-box{position:relative;z-index:5}
+          .mpCard{position:relative;width:100%;max-width:400px;margin:0 auto;padding:14px;border-radius:18px;
+            background:linear-gradient(180deg,${bgAtas} 0%,#121212 65%,#0e0e10 100%);
+            border:1px solid rgba(255,255,255,.1);box-shadow:0 12px 32px rgba(0,0,0,.7);overflow:hidden;
+            font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}
+          .mpKick{color:rgba(255,255,255,.6);font:bold 8px -apple-system,sans-serif;letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:10px}
+          .mpCoverBox{width:100%;max-width:215px;aspect-ratio:1/1;margin:0 auto 12px;border-radius:8px;overflow:hidden;background:#141416;box-shadow:0 10px 28px rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;transition:transform .3s ease}
+          .mpCoverBox.playing{transform:scale(1.02)}
+          .mpCoverBox img{width:100%;height:100%;object-fit:cover;display:block}
+          .mpTitle{color:#fff;font:bold 15px -apple-system,sans-serif;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+          .mpArtist{margin-top:2px;color:rgba(255,255,255,.6);font:11px -apple-system,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+          .mpPills{display:flex;gap:5px;flex-wrap:wrap;margin:6px 0 2px}
+          .lyricArea{position:relative;z-index:2;height:46px;overflow:hidden;margin:4px 0 2px;
+            -webkit-mask-image:linear-gradient(180deg,transparent 0%,#000 22%,#000 78%,transparent 100%);
+            mask-image:linear-gradient(180deg,transparent 0%,#000 22%,#000 78%,transparent 100%)}
+          .lyricScroll{position:absolute;left:0;right:0;top:0;padding:12px 4px;transition:transform .4s cubic-bezier(.2,.8,.2,1),opacity .5s ease}
+          .lyricScroll.masked{opacity:0}
+          .lyricLine{margin:4px 0;color:rgba(255,255,255,.32);font:bold 12px -apple-system,sans-serif;line-height:1.25;text-align:left;transition:color .3s ease,transform .3s ease;transform:scale(.97);transform-origin:left center}
+          .lyricLine.active{color:#fff;transform:scale(1.02);text-shadow:0 0 14px rgba(255,255,255,.45)}
+          .mpProgArea{margin:8px 0 4px;cursor:pointer;padding:6px 0;touch-action:none}
+          .mpProg{position:relative;width:100%;height:4px;border-radius:2px;background:rgba(255,255,255,.18)}
+          .mpProgBar{position:absolute;left:0;top:0;height:100%;width:0%;border-radius:2px;background:#fff}
+          .mpProgDot{position:absolute;left:0%;top:50%;width:10px;height:10px;transform:translate(-50%,-50%);border-radius:50%;background:#fff;box-shadow:0 0 6px rgba(0,0,0,.4)}
+          .mpTimes{display:flex;justify-content:space-between;margin-top:4px;color:rgba(255,255,255,.45);font:10px monospace}
+          .mpCtrls{display:flex;align-items:center;justify-content:space-between;margin-top:8px}
+          .mpBtn{background:transparent;border:none;color:rgba(255,255,255,.75);cursor:pointer;padding:6px;display:flex;align-items:center;justify-content:center;border-radius:50%}
+          .mpBtn:active{transform:scale(.88);color:#fff}
+          .mpBtn.active{color:#a992ff}
+          .mpPlay{width:50px;height:50px;border-radius:50%;background:#fff;color:#000;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(0,0,0,.5)}
+          .mpPlay:active{transform:scale(.92)}
+          .mpPlay svg{fill:#000}
+          .mpClose{position:absolute;top:10px;right:10px;background:rgba(255,255,255,.1);border:none;color:rgba(255,255,255,.6);width:24px;height:24px;border-radius:50%;cursor:pointer;font-size:11px;z-index:6}
+          </style>
+          <div class="mpCard">
+            <button class="mpClose" onclick="muStop();document.getElementById('gilz-music-box').classList.add('hidden')">✕</button>
+            <div class="mpKick">▶ GILZ Music${track.preview && !track.full ? ' · Preview' : ''}</div>
+            <div class="mpCoverBox" id="mpCover">${track.artwork ? `<img src="${track.artwork}" alt="cover"/>` : '<div style="font-size:44px;opacity:.4">🎵</div>'}</div>
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:4px">
+              <div style="min-width:0;flex:1">
+                <div class="mpTitle">${(track.title||'').replace(/</g,'&lt;')}</div>
+                <div class="mpArtist">${(track.artist||'').replace(/</g,'&lt;')}</div>
+              </div>
+              <button class="mpBtn" id="mpLike" title="Suka"><svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg></button>
+            </div>
+            <div class="mpPills">${pills}</div>
+            ${adaLirik ? `
+            <div class="lyricArea" id="mpLyricBox"><div class="lyricScroll masked" id="mpLyricScroll"></div></div>` : ''}
+            <div class="mpProgArea" id="mpProgArea">
+              <div class="mpProg"><div class="mpProgBar" id="mpProgBar"></div><div class="mpProgDot" id="mpProgDot"></div></div>
+              <div class="mpTimes"><span id="mpTCur">0:00</span><span id="mpTDur">--:--</span></div>
+            </div>
+            <div class="mpCtrls">
+              <button class="mpBtn" id="mpLoop" title="Ulangi"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/></svg></button>
+              <button class="mpBtn" id="mpBack" title="-10s"><svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg></button>
+              <button class="mpPlay" id="mpPlay" title="Putar/Jeda">
+                <svg id="mpIcPlay" viewBox="0 0 24 24" width="24" height="24"><path d="M8 5v14l11-7z"/></svg>
+                <svg id="mpIcPause" viewBox="0 0 24 24" width="24" height="24" style="display:none"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+              </button>
+              <button class="mpBtn" id="mpFwd" title="+10s"><svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg></button>
+              <button class="mpBtn" id="mpLike2" title="Suka"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg></button>
+            </div>
+            ${dl}
+          </div>
+          <audio id="mpAudio" preload="auto"></audio>`;
+
+          /* ═══ wiring — persis skrip kartuMusik ═══ */
+          const audio = host.querySelector('#mpAudio');
+          const q = (s) => host.querySelector(s);
+          const els = {
+            play: q('#mpPlay'), icPlay: q('#mpIcPlay'), icPause: q('#mpIcPause'),
+            progArea: q('#mpProgArea'), progBar: q('#mpProgBar'), progDot: q('#mpProgDot'),
+            tCur: q('#mpTCur'), tDur: q('#mpTDur'), cover: q('#mpCover'),
+            loop: q('#mpLoop'), back: q('#mpBack'), fwd: q('#mpFwd'),
+            like: q('#mpLike'), like2: q('#mpLike2'),
+            lyricBox: q('#mpLyricBox'), lyricScroll: q('#mpLyricScroll'),
+          };
+          audio.volume = .85;
+          audio.src = track.full || track.preview;
+
+          let lyricEls = [], lyricActive = -1, lyricHidden = true;
+          if (adaLirik) {
+            els.lyricScroll.innerHTML = lirik.map((b) => {
+              const t = (b.teks || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+              return '<div class="lyricLine">' + (t || '&nbsp;') + '</div>';
+            }).join('');
+            lyricEls = Array.prototype.slice.call(els.lyricScroll.children);
+          }
+          function idxAt(ms) {
+            if (!lirik.length || ms < lirik[0].ms) return -1;
+            let lo = 0, hi = lirik.length - 1, f = 0;
+            while (lo <= hi) { const mid = (lo + hi) >> 1; if (lirik[mid].ms <= ms) { f = mid; lo = mid + 1 } else hi = mid - 1 }
+            return f;
+          }
+          function setHide(h) { if (h === lyricHidden) return; lyricHidden = h; els.lyricScroll.classList.toggle('masked', h); }
+          function updLirik() {
+            if (!lyricEls.length) return;
+            const ms = audio.currentTime * 1000;
+            const i = idxAt(ms);
+            let sembunyi = false;
+            if (i < 0) { sembunyi = lirik[0].ms - ms > 1500; }
+            else {
+              const now = lirik[i].ms;
+              const kosong = !String(lirik[i].teks || '').trim();
+              const next = lirik[i + 1];
+              if (kosong) { sembunyi = !next || next.ms - now > 5000; }
+              else if (next) { if (next.ms - now > 12000 && ms - now > 4000 && next.ms - ms > 1500) sembunyi = true; }
+              else { if (ms - now > 6000) sembunyi = true; }
+            }
+            setHide(sembunyi);
+            if (i === lyricActive) return;
+            if (lyricEls[lyricActive]) lyricEls[lyricActive].classList.remove('active');
+            lyricActive = i;
+            if (i < 0) { els.lyricScroll.style.transform = 'translateY(0px)'; return; }
+            const el = lyricEls[i];
+            el.classList.add('active');
+            els.lyricScroll.style.transform = 'translateY(' + (els.lyricBox.clientHeight / 2 - (el.offsetTop + el.offsetHeight / 2)) + 'px)';
+          }
+
+          function upd() {
+            if (!Number.isFinite(audio.duration) || audio.duration <= 0) return;
+            const p = (audio.currentTime / audio.duration) * 100;
+            els.progBar.style.width = p + '%';
+            els.progDot.style.left = p + '%';
+            els.tCur.textContent = fmtWaktu(audio.currentTime);
+          }
+          function setPlaying() { els.icPlay.style.display = 'none'; els.icPause.style.display = 'block'; els.cover.classList.add('playing'); }
+          function setPaused() { els.icPlay.style.display = 'block'; els.icPause.style.display = 'none'; els.cover.classList.remove('playing'); }
+          els.play.addEventListener('click', async () => {
+            try { if (audio.paused) { await audio.play(); setPlaying(); } else { audio.pause(); setPaused(); } } catch (e) { setPaused(); }
+          });
+          els.back.addEventListener('click', () => { audio.currentTime = Math.max(0, audio.currentTime - 10); upd(); });
+          els.fwd.addEventListener('click', () => { if (Number.isFinite(audio.duration)) { audio.currentTime = Math.min(audio.duration, audio.currentTime + 10); upd(); } });
+          els.loop.addEventListener('click', () => { audio.loop = !audio.loop; els.loop.classList.toggle('active', audio.loop); });
+          const like = () => { els.like.classList.toggle('active'); els.like2.classList.toggle('active'); };
+          els.like.addEventListener('click', like);
+          els.like2.addEventListener('click', like);
+          function seekTo(x) {
+            if (!Number.isFinite(audio.duration) || audio.duration <= 0) return;
+            const r = els.progArea.getBoundingClientRect();
+            const p = Math.max(0, Math.min(1, (x - r.left) / r.width));
+            audio.currentTime = p * audio.duration; upd();
+          }
+          let drag = false;
+          els.progArea.addEventListener('pointerdown', (e) => { drag = true; try { els.progArea.setPointerCapture(e.pointerId); } catch (err) {} seekTo(e.clientX); });
+          els.progArea.addEventListener('pointermove', (e) => { if (drag) seekTo(e.clientX); });
+          els.progArea.addEventListener('pointerup', () => { drag = false; });
+          els.progArea.addEventListener('pointercancel', () => { drag = false; });
+          audio.addEventListener('loadedmetadata', () => { if (Number.isFinite(audio.duration) && audio.duration > 0) els.tDur.textContent = fmtWaktu(audio.duration); });
+          audio.addEventListener('timeupdate', () => { upd(); updLirik(); });
+          audio.addEventListener('seeked', updLirik);
+          audio.addEventListener('play', setPlaying);
+          audio.addEventListener('pause', () => { if (!audio.ended) setPaused(); });
+          audio.addEventListener('ended', () => {
+            setPaused();
+            els.progBar.style.width = '0%'; els.progDot.style.left = '0%'; els.tCur.textContent = '0:00';
+            if (lyricEls[lyricActive]) lyricEls[lyricActive].classList.remove('active');
+            lyricActive = -1; els.lyricScroll.style.transform = 'translateY(0px)'; setHide(true);
+          });
+
+          __mpState = { audio, els, lirik };
+          glog('info', 'music: ' + track.title + (adaLirik ? ' (+' + lirik.length + ' baris lirik)' : ' (tanpa lirik)'));
+          try { await audio.play(); setPlaying(); } catch (e) { setPaused(); }
+        };
+
+                function renderFeatResult(result, out) {
           let html = '';
           if (out.type === 'music-list') {
-            html = `<div id="now-playing" class="mb-3 space-y-2"></div>` + out.tracks.map((t,i) => `
+            const fid = result.closest('[id^="feat-"]')?.id || '';
+            const key = fid ? fid.slice(5) : '';
+            window.__MU = window.__MU || {};
+            window.__MU[key] = out.tracks;
+            html = `<div id="gilz-music-box" class="hidden mb-4"></div>` + out.tracks.map((t, i) => `
               <div class="flex items-center gap-3 bg-dark-950 border border-white/10 rounded-2xl p-2.5">
                 ${t.artwork ? `<img src="${t.artwork}" class="w-12 h-12 rounded-lg border border-white/10 shrink-0"/>` : '<div class="w-12 h-12 rounded-lg bg-white/5 flex items-center justify-center shrink-0">🎵</div>'}
                 <div class="min-w-0 flex-1"><p class="text-[11px] font-bold text-white truncate">${(t.title||'-').replace(/</g,'&lt;')}</p><p class="text-[10px] text-slate-500 truncate">${(t.artist||'').replace(/</g,'&lt;')}</p></div>
-                ${t.preview || t.full ? `<button onclick="playTrack(__MU['${result.dataset.feat||''}'][${i}], this)" class="shrink-0 w-9 h-9 rounded-full bg-green-500 hover:bg-green-400 text-white font-black flex items-center justify-center text-xs">▶</button>` : ''}
+                <button onclick="muPlay(window.__MU['${key}'][${i}], {auto:true})" class="shrink-0 w-9 h-9 rounded-full bg-green-500 hover:bg-green-400 text-white font-black flex items-center justify-center text-xs">▶</button>
               </div>`).join('');
-            const fid = result.closest('[id^="feat-"]')?.id || '';
-            if (fid) { const key = fid.slice(5); window.__MU = window.__MU || {}; window.__MU[key] = out.tracks; html = html.replaceAll(`__MU['']`, `__MU['${key}']`); }
           } else if (out.type === 'music-player') {
             html = '';
-            setTimeout(() => playTrack(out.track, null), 50);
-          } else if (out.type === 'video') {
+            setTimeout(() => muPlay(out.track, { auto: true }), 50);
+          } else if (out.type === 'video') {          } else if (out.type === 'video') {
             html = `<video src="${out.url}" controls autoplay loop class="w-full max-h-80 rounded-2xl border border-white/10 bg-black"></video><a href="${out.url}" download="${out.filename || 'video.webm'}" class="block mt-2 w-full bg-white/10 hover:bg-white/20 border border-white/15 text-white font-bold py-2.5 rounded-xl text-center text-[11px]">⬇️ Simpan Video</a>`;
           } else if (out.type === 'audio') {
             html = `<audio src="${out.url}" controls class="w-full"></audio><p class="text-[10px] text-slate-500 mt-1 text-center">${(out.title||'')}</p>`;
