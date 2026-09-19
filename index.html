@@ -140,7 +140,7 @@
                     <path fill="#FBBC05" d="M5.84 14.1c-.22-.66-.35-1.36-.35-2.1s.13-1.44.35-2.1V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.62z"/>
                     <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
                 </svg>
-                Pilih Akun Email HP
+                Login dengan Google
             </button>
 
             <div class="flex items-center my-4 text-[10px] text-slate-500 font-bold uppercase tracking-wider">
@@ -308,6 +308,10 @@
                             <button onclick="switchCategory('tiktok-pro'); toggleDropdown('category-dropdown');" class="w-full flex items-center space-x-3 px-3.5 py-2.5 text-xs font-semibold text-slate-300 hover:bg-brand-primary/20 hover:text-white rounded-2xl transition-all text-left">
                                 <span class="w-7 h-7 rounded-xl bg-purple-500/20 flex items-center justify-center text-purple-400 shrink-0"><i class="fa-brands fa-tiktok text-xs"></i></span>
                                 <div class="truncate"><p class="font-bold text-purple-300">7. TikTok Downloader Pro</p><p class="text-[10px] text-slate-500">No Watermark & Audio Grabber</p></div>
+                            </button>
+                            <button onclick="switchCategory('primbon'); toggleDropdown('category-dropdown');" class="w-full flex items-center space-x-3 px-3.5 py-2.5 text-xs font-semibold text-slate-300 hover:bg-brand-primary/20 hover:text-white rounded-2xl transition-all text-left">
+                                <span class="w-7 h-7 rounded-xl bg-amber-500/20 flex items-center justify-center text-amber-400 shrink-0"><i class="fa-solid fa-star-and-crescent text-xs"></i></span>
+                                <div class="truncate"><p class="font-bold text-amber-300">Primbon & Ramalan</p><p class="text-[10px] text-slate-500">Arti Nama, Jodoh, Hoki</p></div>
                             </button>
                             <button onclick="switchCategory('database'); toggleDropdown('category-dropdown');" class="w-full flex items-center space-x-3 px-3.5 py-2.5 text-xs font-semibold text-slate-300 hover:bg-brand-primary/20 hover:text-white rounded-2xl transition-all text-left">
                                 <span class="w-7 h-7 rounded-xl bg-brand-primary/20 flex items-center justify-center text-brand-primary shrink-0"><i class="fa-solid fa-database text-xs"></i></span>
@@ -605,10 +609,22 @@
                         <!-- 6. DOWNLOADER -->
                         <div id="content-downloader" class="action-content space-y-5 hidden">
                             <div>
-                                <label class="block text-xs font-extrabold uppercase tracking-widest text-slate-400 mb-2.5">Link Media (IG/YouTube/FB)</label>
-                                <input type="text" placeholder="https://..." class="w-full bg-dark-950/90 border border-white/10 rounded-2xl px-4 py-4 text-slate-100 text-sm">
+                                <label class="block text-xs font-extrabold uppercase tracking-widest text-slate-400 mb-2.5">Platform</label>
+                                <select id="dl-type" class="w-full bg-dark-950/90 border border-white/10 rounded-2xl px-4 py-4 text-slate-100 text-sm font-medium">
+                                    <option value="ytmp3">YouTube → MP3</option>
+                                    <option value="fb">Facebook Video</option>
+                                    <option value="ig">Instagram (Post/Reel)</option>
+                                </select>
                             </div>
-                            <button onclick="executeGenericCategory('Media Downloader', '📥 Media berhasil diunduh tanpa watermark!')" class="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-black py-4 rounded-2xl text-sm shadow-xl shadow-cyan-600/30">Download Media Sekarang</button>
+                            <div>
+                                <label class="block text-xs font-extrabold uppercase tracking-widest text-slate-400 mb-2.5">Link</label>
+                                <div class="relative">
+                                    <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-500"><i class="fa-solid fa-link text-cyan-400"></i></span>
+                                    <input type="text" id="dl-url" placeholder="https://..." class="w-full bg-dark-950/90 border border-white/10 rounded-2xl pl-11 pr-4 py-4 focus:outline-none focus:border-cyan-500 text-slate-100 text-sm font-medium">
+                                </div>
+                            </div>
+                            <button onclick="mediaDownload()" id="btn-dl" class="w-full bg-gradient-to-r from-cyan-600 to-blue-600 hover:opacity-95 text-white font-black py-4 rounded-2xl shadow-xl shadow-cyan-600/30 transition-all text-sm tracking-wide">📥 Download Media Sekarang</button>
+                            <div id="dl-result" class="hidden"></div>
                         </div>
 
                         <!-- 7. TIKTOK DOWNLOADER PRO -->
@@ -639,7 +655,36 @@
                             </div>
                         </div>
 
-                        <!-- 8. DATABASE -->
+                        <!-- PRIMBON & RAMALAN -->
+                        <div id="content-primbon" class="action-content space-y-5 hidden">
+                            <div>
+                                <label class="block text-xs font-extrabold uppercase tracking-widest text-slate-400 mb-2.5">Jenis Primbon</label>
+                                <select id="primbon-type" class="w-full bg-dark-950/90 border border-white/10 rounded-2xl px-4 py-4 text-slate-100 text-sm font-medium">
+                                    <option value="artinama">Arti Nama</option>
+                                    <option value="pasangan">Kecocokan Nama Pasangan</option>
+                                    <option value="hoki">Nomor Hoki (HP)</option>
+                                    <option value="jodoh">Ramalan Jodoh (nama + tanggal lahir)</option>
+                                </select>
+                            </div>
+                            <div class="grid grid-cols-1 gap-3">
+                                <div>
+                                    <label class="block text-[11px] font-bold text-slate-400 mb-1.5">Nama (atau Nama 1)</label>
+                                    <input type="text" id="pb-nama1" placeholder="Nama kamu" class="w-full bg-dark-950/90 border border-white/10 rounded-2xl px-4 py-3.5 text-slate-100 text-sm">
+                                </div>
+                                <div id="pb-row-nama2" class="hidden">
+                                    <label class="block text-[11px] font-bold text-slate-400 mb-1.5">Nama 2 (pasangan)</label>
+                                    <input type="text" id="pb-nama2" placeholder="Nama pasangan" class="w-full bg-dark-950/90 border border-white/10 rounded-2xl px-4 py-3.5 text-slate-100 text-sm">
+                                </div>
+                                <div id="pb-row-tgl" class="hidden grid grid-cols-3 gap-2">
+                                    <input type="number" id="pb-tgl1" placeholder="Tgl" min="1" max="31" class="bg-dark-950/90 border border-white/10 rounded-2xl px-3 py-3.5 text-slate-100 text-sm">
+                                    <input type="number" id="pb-bln1" placeholder="Bln" min="1" max="12" class="bg-dark-950/90 border border-white/10 rounded-2xl px-3 py-3.5 text-slate-100 text-sm">
+                                    <input type="number" id="pb-thn1" placeholder="Thn" min="1900" max="2026" class="bg-dark-950/90 border border-white/10 rounded-2xl px-3 py-3.5 text-slate-100 text-sm">
+                                </div>
+                            </div>
+                            <button onclick="primbonRun()" id="btn-primbon" class="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:opacity-95 text-white font-black py-4 rounded-2xl shadow-xl shadow-amber-600/30 transition-all text-sm tracking-wide">✨ Lihat Hasil Primbon</button>
+                        </div>
+
+<!-- 8. DATABASE -->
                         <div id="content-database" class="action-content space-y-5 hidden">
                             <div>
                                 <label class="block text-xs font-extrabold uppercase tracking-widest text-slate-400 mb-2.5">SQL Query</label>
@@ -1079,6 +1124,7 @@ Dashboard Elite v6.0 aktif dengan Glowing Themes. by Gilz.</pre>
                 'preset': { title: 'AM Presets & XML Manager', desc: 'Akses ratusan preset dan file XML Alight Motion siap pakai.', icon: 'fa-clapperboard' },
                 'downloader': { title: 'Media Downloader Pro', desc: 'Unduh video dari berbagai platform sosial media dengan mudah.', icon: 'fa-download' },
                 'tiktok-pro': { title: 'TikTok Downloader Pro', desc: 'Unduh video, foto slide, dan audio TikTok tanpa watermark.', icon: 'fa-brands fa-tiktok' },
+                'primbon': { title: 'Primbon & Ramalan', desc: 'Arti nama, kecocokan pasangan, nomor hoki, dan ramalan jodoh.', icon: 'fa-star-and-crescent' },
                 'database': { title: 'Database Inspector', desc: 'Pemeriksaan tabel dan data records secara real-time.', icon: 'fa-database' },
                 'broadcast': { title: 'WhatsApp Broadcast Engine', desc: 'Kirim pesan massal pengumuman ke seluruh grup atau kontak.', icon: 'fa-bullhorn' },
                 'security': { title: 'Security & Firewall Guard', desc: 'Konfigurasi proteksi DDoS dan rate limiter server.', icon: 'fa-shield-halved' },
@@ -1443,6 +1489,133 @@ Dashboard Elite v6.0 aktif dengan Glowing Themes. by Gilz.</pre>
                 outputBox.innerText = formatResponse('PROJECT SIAP', '🎬', '┌─── ✅ *PROJECT DITEMUKAN* ───\n├─ 🔗 Link valid\n├─ 📦 File .zip siap diunduh\n╰━━━━━━━━━━━━━━━━━━━━━━━━━━━╯\n➡️ Klik tombol unduh di atas.');
             } catch (err) {
                 outputBox.innerText = formatResponse('ERROR', '❌', '┌─── ⚠️ Gagal mengambil project ───\n├─ ' + err.message + '\n╰━━━━━━━━━━━━━━━━━━━━━━━━━━━╯');
+            } finally {
+                btn.disabled = false; btn.style.opacity = 1;
+            }
+        }
+
+        /* ═══ MEDIA DOWNLOADER REAL (azbry — sama kayak plugin bot) ═══ */
+        async function mediaDownload() {
+            const outputBox = document.getElementById('output-box');
+            const type = document.getElementById('dl-type').value;
+            const url = document.getElementById('dl-url').value.trim();
+            const btn = document.getElementById('btn-dl');
+            const resultBox = document.getElementById('dl-result');
+            if (!url || !/^https?:\/\//i.test(url)) {
+                outputBox.innerText = formatResponse('GAGAL', '❌', "┌─── ⚠️ *LINK TIDAK VALID* ───\n├─ 🔗 Tempel link yang bener!\n╰━━━━━━━━━━━━━━━━━━━━━━━━━━━╯");
+                return;
+            }
+            const endpoints = {
+                ytmp3: 'https://api.azbry.com/api/download/ytmp3?url=',
+                fb: 'https://api.azbry.com/api/download/facebook?url=',
+                ig: 'https://api.azbry.com/api/download/instagramv2?url=',
+            };
+            btn.disabled = true; btn.style.opacity = .6;
+            resultBox.classList.add('hidden');
+            outputBox.innerText = '⏳ Mengambil media...';
+            try {
+                const r = await fetchJson(endpoints[type] + encodeURIComponent(url), 60000);
+                if (!r?.status) throw new Error(r?.message || 'link tidak valid / private');
+                const d = r.result || r.data || {};
+                const title = d.title || d.nama || 'Media';
+                const dl = d.download || d.url || d.link || (Array.isArray(d.links) ? d.links[0] : null);
+                if (!dl) throw new Error('file media tidak ditemukan di respon');
+                resultBox.innerHTML = '<div class="bg-dark-950/90 border border-white/10 rounded-2xl p-4"><p class="text-xs text-slate-300 font-bold mb-2 truncate">' + title.replace(/</g, '&lt;') + '</p><a href="' + dl + '" target="_blank" rel="noopener" class="block w-full bg-gradient-to-r from-cyan-600 to-blue-600 hover:opacity-95 text-white font-black py-3.5 rounded-2xl text-center text-sm">⬇️ Unduh Sekarang</a></div>';
+                resultBox.classList.remove('hidden');
+                outputBox.innerText = formatResponse('MEDIA SIAP', '📥', '┌─── ✅ *MEDIA DITEMUKAN* ───\n├─ 📝 ' + String(title).slice(0, 60) + '\n├─ 📦 File siap diunduh\n╰━━━━━━━━━━━━━━━━━━━━━━━━━━━╯');
+            } catch (err) {
+                outputBox.innerText = formatResponse('ERROR', '❌', '┌─── ⚠️ Gagal ───\n├─ ' + err.message + '\n╰━━━━━━━━━━━━━━━━━━━━━━━━━━━╯');
+            } finally {
+                btn.disabled = false; btn.style.opacity = 1;
+            }
+        }
+
+        /* ═══ TIKTOK PRO — implement beneran (tikwm) ═══ */
+        async function handleTikTokDownload() {
+            const outputBox = document.getElementById('output-box');
+            const url = document.getElementById('tt-url').value.trim();
+            const container = document.getElementById('tt-result-container');
+            const preview = document.getElementById('tt-media-preview');
+            if (!url || !/^https?:\/\//i.test(url) || !/tiktok\.com/i.test(url)) {
+                outputBox.innerText = formatResponse('GAGAL', '❌', "┌─── ⚠️ *LINK TIKTOK TIDAK VALID* ───\n├─ 🔗 Tempel link video/slide TikTok!\n╰━━━━━━━━━━━━━━━━━━━━━━━━━━━╯");
+                return;
+            }
+            outputBox.innerText = '⏳ Memproses TikTok (tanpa watermark)...';
+            container.classList.add('hidden');
+            try {
+                const r = await fetchJson('https://tikwm.com/api/?url=' + encodeURIComponent(url), 60000);
+                if (r?.code !== 0 || !r?.data) throw new Error(r?.msg || 'video tidak ditemukan / link private');
+                const d = r.data;
+                const videoUrl = d.hdplay || d.play || d.wmplay || '';
+                const musicUrl = d.music ? (/^https?:/i.test(d.music) ? d.music : 'https://tikwm.com' + d.music) : '';
+                const cover = d.cover || d.origin_cover || '';
+                preview.innerHTML = (cover ? '<img src="' + cover + '" class="max-h-64 rounded-xl" alt="cover"/>' : '<i class="fa-brands fa-tiktok text-5xl text-purple-400"></i>');
+                try {
+                    document.getElementById('tt-res-author').textContent = '@' + (d.author?.unique_id || d.author?.nickname || '-');
+                    document.getElementById('tt-res-title').textContent = String(d.title || '').slice(0, 120);
+                    document.getElementById('tt-res-stats').innerHTML =
+                        '<div><div class="text-[9px] text-slate-500 uppercase">Views</div><div class="font-bold text-white">' + (d.play_count ?? '-') + '</div></div>' +
+                        '<div><div class="text-[9px] text-slate-500 uppercase">Likes</div><div class="font-bold text-white">' + (d.digg_count ?? '-') + '</div></div>' +
+                        '<div><div class="text-[9px] text-slate-500 uppercase">Comments</div><div class="font-bold text-white">' + (d.comment_count ?? '-') + '</div></div>';
+                } catch {}
+                const linksBox = document.getElementById('tt-download-links');
+                if (linksBox) {
+                    let html = '';
+                    if (videoUrl) html += '<a href="' + videoUrl + '" target="_blank" rel="noopener" class="block w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:opacity-95 text-white font-black py-4 rounded-2xl text-center text-sm shadow-xl shadow-purple-600/40">🎬 Unduh Video ' + (d.hdplay ? '(HD, no watermark)' : '(no watermark)') + '</a>';
+                    if (musicUrl) html += '<a href="' + musicUrl + '" target="_blank" rel="noopener" class="block w-full bg-dark-800/90 hover:bg-dark-700 border border-white/15 text-slate-200 font-bold py-3.5 rounded-2xl text-center text-sm">🎵 Unduh Audio / Musik</a>';
+                    linksBox.innerHTML = html;
+                }
+                container.classList.remove('hidden');
+                outputBox.innerText = formatResponse('TIKTOK SIAP', '🎵', '┌─── ✅ *VIDEO SIAP DIUNDUH* ───\n├─ 📝 ' + String(d.title || '').slice(0, 60) + '\n├─ 🎬 No watermark (HD kalau ada)\n├─ 🎵 Audio bisa diunduh juga\n╰━━━━━━━━━━━━━━━━━━━━━━━━━━━╯');
+            } catch (err) {
+                outputBox.innerText = formatResponse('ERROR', '❌', '┌─── ⚠️ Gagal ───\n├─ ' + err.message + '\n╰━━━━━━━━━━━━━━━━━━━━━━━━━━━╯');
+            }
+        }
+
+        /* ═══ PRIMBON (siputzx — sama kayak plugin primbon bot) ═══ */
+        document.addEventListener('change', (e) => {
+            if (e.target?.id !== 'primbon-type') return;
+            const t = e.target.value;
+            document.getElementById('pb-row-nama2').classList.toggle('hidden', !(t === 'pasangan' || t === 'jodoh'));
+            document.getElementById('pb-row-tgl').classList.toggle('hidden', t !== 'jodoh');
+        });
+
+        async function primbonRun() {
+            const outputBox = document.getElementById('output-box');
+            const type = document.getElementById('primbon-type').value;
+            const nama1 = document.getElementById('pb-nama1').value.trim();
+            const nama2 = document.getElementById('pb-nama2').value.trim();
+            const tgl = document.getElementById('pb-tgl1').value;
+            const bln = document.getElementById('pb-bln1').value;
+            const thn = document.getElementById('pb-thn1').value;
+            const btn = document.getElementById('btn-primbon');
+
+            let url = '';
+            if (type === 'artinama') {
+                if (!nama1) { outputBox.innerText = formatResponse('GAGAL', '❌', '┌─ ⚠️ Masukkan nama dulu! ╰━━'); return; }
+                url = 'https://api.siputzx.my.id/api/primbon/artinama?nama=' + encodeURIComponent(nama1);
+            } else if (type === 'pasangan') {
+                if (!nama1 || !nama2) { outputBox.innerText = formatResponse('GAGAL', '❌', '┌─ ⚠️ Masukkan 2 nama! ╰━━'); return; }
+                url = 'https://api.siputzx.my.id/api/primbon/kecocokan_nama_pasangan?nama1=' + encodeURIComponent(nama1) + '&nama2=' + encodeURIComponent(nama2);
+            } else if (type === 'hoki') {
+                const num = nama1.replace(/\D/g, '');
+                if (num.length < 8) { outputBox.innerText = formatResponse('GAGAL', '❌', '┌─ ⚠️ Masukkan nomor HP di kolom nama! ╰━━'); return; }
+                url = 'https://api.siputzx.my.id/api/primbon/nomorhoki?phoneNumber=' + num;
+            } else {
+                if (!nama1 || !nama2 || !tgl || !bln || !thn) { outputBox.innerText = formatResponse('GAGAL', '❌', '┌─ ⚠️ Isi nama2 + tanggal lahir! ╰━━'); return; }
+                url = 'https://api.siputzx.my.id/api/primbon/ramalanjodoh?nama1=' + encodeURIComponent(nama1) + '&tgl1=' + tgl + '&bln1=' + bln + '&thn1=' + thn + '&nama2=' + encodeURIComponent(nama2) + '&tgl2=' + tgl + '&bln2=' + bln + '&thn2=' + thn;
+            }
+
+            btn.disabled = true; btn.style.opacity = .6;
+            outputBox.innerText = '⏳ Menghitung primbon...';
+            try {
+                const r = await fetchJson(url, 30000);
+                if (!r?.status && !r?.data) throw new Error(r?.message || 'gagal menghitung');
+                const d = r.data || r;
+                const text = d.arti || d.hasil || d.deskripsi || d.message || JSON.stringify(d).slice(0, 1200);
+                outputBox.innerText = formatResponse('PRIMBON', '✨', '┌─── ✨ *HASIL PRIMBON* ───\n├─ (hasil lengkap di bawah)\n╰━━━━━━━━━━━━━━━━━━━━━━━━━━━╯\n\n' + String(text).replace(/\n{3,}/g, '\n\n').slice(0, 2500));
+            } catch (err) {
+                outputBox.innerText = formatResponse('ERROR', '❌', '┌─── ⚠️ Gagal ───\n├─ ' + err.message + '\n╰━━━━━━━━━━━━━━━━━━━━━━━━━━━╯');
             } finally {
                 btn.disabled = false; btn.style.opacity = 1;
             }
