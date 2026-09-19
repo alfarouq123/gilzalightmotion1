@@ -903,7 +903,7 @@ Dashboard Elite v6.0 aktif dengan Glowing Themes. by Gilz.</pre>
         window.addEventListener('DOMContentLoaded', () => {
             /* google login: init kalau client id terpasang (script.js) */
             try {
-                if (window.GILZ_GOOGLE_CLIENT_ID) {
+                if (gilzGoogleCid()) {
                     const tryInit = () => {
                         if (typeof google !== 'undefined' && google.accounts) { gilzGoogleInit(); return true }
                         return false
@@ -992,11 +992,53 @@ Dashboard Elite v6.0 aktif dengan Glowing Themes. by Gilz.</pre>
             }
         }
 
-        /* Google Login — client ID diatur di script.js (GILZ_GOOGLE_CLIENT_ID).
-           Kalau belum diisi: otomatis fallback ke input email manual. */
+        /* Google Login — client ID bisa dari script.js ATAU disimpan lewat
+           modal setelan (localStorage amfree_gcid). */
+        function gilzGoogleCid() {
+            const fromLs = (localStorage.getItem('amfree_gcid') || '').trim();
+            const fromWin = (window.GILZ_GOOGLE_CLIENT_ID || '').trim();
+            return fromLs || fromWin || '';
+        }
         function gilzGoogleReady() {
-            const cid = (window.GILZ_GOOGLE_CLIENT_ID || '').trim()
+            const cid = gilzGoogleCid();
             return Boolean(cid) && typeof google !== 'undefined' && google.accounts && google.accounts.id
+        }
+        function gilzGoogleSetup() {
+            let m = document.getElementById('gcid-modal');
+            if (!m) {
+                m = document.createElement('div');
+                m.id = 'gcid-modal';
+                m.className = 'fixed inset-0 z-[70] flex items-center justify-center bg-dark-950/95 backdrop-blur-3xl px-4';
+                m.innerHTML = `
+                <div class="glass-panel rounded-[2rem] p-6 max-w-md w-full ring-2 ring-brand-primary/40 shadow-2xl space-y-4">
+                    <div class="text-center">
+                        <h3 class="text-lg font-black text-white">🔑 Aktifkan Login Google</h3>
+                        <p class="text-[11px] text-slate-400 mt-1">Cuma 5 menit, sekali doang:</p>
+                    </div>
+                    <ol class="text-[11px] text-slate-300 space-y-2 list-decimal list-inside leading-relaxed">
+                        <li>Buka <b class="text-brand-primary">console.cloud.google.com</b> → buat project baru (nama bebas)</li>
+                        <li>Menu <b>APIs &amp; Services → OAuth consent screen</b> → External → isi nama app + email → Save</li>
+                        <li>Menu <b>Credentials → Create Credentials → OAuth Client ID</b> → Web application</li>
+                        <li><b>Authorized JavaScript origins</b> → tambah:<br><code class="text-emerald-300 break-all">https://gilzalightmotion.my.id</code></li>
+                        <li>Copy <b>Client ID</b> (akhiran .apps.googleusercontent.com) → paste di bawah</li>
+                    </ol>
+                    <input type="text" id="gcid-input" placeholder="1234-abc.apps.googleusercontent.com" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-brand-primary"/>
+                    <div class="flex gap-2">
+                        <button onclick="document.getElementById('gcid-modal').remove()" class="flex-1 bg-white/10 hover:bg-white/20 border border-white/15 text-slate-300 font-bold py-3 rounded-xl text-xs">Batal</button>
+                        <button onclick="gilzGoogleSave()" class="flex-1 bg-gradient-to-r from-brand-primary to-brand-secondary text-white font-black py-3 rounded-xl text-xs">Simpan &amp; Aktifkan</button>
+                    </div>
+                </div>`;
+                document.body.appendChild(m);
+            }
+            const inp = document.getElementById('gcid-input');
+            inp.value = localStorage.getItem('amfree_gcid') || '';
+            inp.focus();
+        }
+        function gilzGoogleSave() {
+            const v = (document.getElementById('gcid-input').value || '').trim();
+            if (!v.includes('apps.googleusercontent.com')) { alert('Client ID belum valid — harus berakhiran .apps.googleusercontent.com'); return; }
+            localStorage.setItem('amfree_gcid', v);
+            location.reload();
         }
 
         function gilzGoogleInit() {
@@ -1126,8 +1168,7 @@ Dashboard Elite v6.0 aktif dengan Glowing Themes. by Gilz.</pre>
                 gilzGoogleInit();
                 google.accounts.id.prompt();
             } else {
-                authMsg('⚠️ Login Google belum dikonfigurasi admin. Pakai Daftar / Masuk dengan email & sandi di bawah.', false);
-                document.getElementById('loginEmailInput')?.focus();
+                gilzGoogleSetup();
             }
         }
         function promptFallbackEmail() { triggerGoogleAccountSelect(); }
@@ -1702,6 +1743,141 @@ Dashboard Elite v6.0 aktif dengan Glowing Themes. by Gilz.</pre>
         const SIP = 'https://api.siputzx.my.id/api/primbon';
         const AZB = 'https://api.azbry.com/api/download';
 
+        /* ═══ BRAT TEMPLATES (persis plugins/sticker/bratextra.js) ═══ */
+        const BRAT_TEMPLATES = {
+          bratanime:    { url: "https://raw.githubusercontent.com/kayzzaoshi-code/Uploader/main/file_1772989415819.jpeg", areaX: 170, areaW: 460, areaCY: 530, areaMaxH: 210, fontSize: 72, minFontSize: 20 },
+          bratbahlil:   { url: "https://raw.githubusercontent.com/kayzzaoshi-code/Uploader/main/file_1772229450331.jpeg", centerX: 460, centerY: 840, maxWidth: 660, maxHeight: 140, fontSize: 110, minFontSize: 40 },
+          bratpatrick:  { url: "https://raw.githubusercontent.com/kayzzaoshi-code/Uploader/main/file_1772794292812.jpeg", centerX: 460, centerY: 599, maxWidth: 260, maxHeight: 160, fontSize: 70, minFontSize: 8 },
+          bratsquidward:{ url: "https://raw.githubusercontent.com/kayzzaoshi-code/Uploader/main/file_1772794955890.jpeg", centerX: 370, centerY: 370, maxWidth: 230, maxHeight: 110, fontSize: 50, minFontSize: 10 },
+          bratwhite:    { url: "https://raw.githubusercontent.com/kayzzaoshi-code/Uploader/main/file_1771727655279.jpeg", centerX: null, centerY: null, offX: 10, offY: 285, maxWidth: 480, maxHeight: 280, rotation: -7.5 * Math.PI / 180, fontSize: 130, minFontSize: 10 },
+          bratchika:    { url: "https://raw.githubusercontent.com/kayzzaoshi-code/Uploader/main/file_1771527351581.jpeg", centerX: 500, centerY: 810, maxWidth: 450, maxHeight: 250, fontSize: 75, minFontSize: 15, lh: 1.2 },
+          bratkobato:   { url: "https://raw.githubusercontent.com/kayzzaoshi-code/Uploader/main/file_1771728510134.jpeg", centerX: null, centerY: null, offX: 175, offY: 75, maxWidth: 350, maxHeight: 250, fontSize: 120, minFontSize: 10, lh: 1.2 },
+          bratmenhera:  { url: "https://c.termai.cc/i145/qJsN.jpg", centerX: null, centerY: 260, offX: 25, maxWidth: 480, maxHeight: 310, fontSize: 400, minFontSize: 25, lh: 0.92 },
+          bratnezuko:   { url: "https://raw.githubusercontent.com/kayzzaoshi-code/Uploader/main/file_1772793912974.jpeg", centerX: null, centerY: 1245, offX: 5, maxWidth: 820, maxHeight: 480, fontSize: 140, minFontSize: 20, lh: 1.25 },
+          bratqiqi:     { url: "https://raw.githubusercontent.com/kayzzaoshi-code/Uploader/main/file_1771532869746.jpeg", centerX: null, centerY: null, offX: 5, offY: 108, maxWidth: 210, maxHeight: 95, fontSize: 40, minFontSize: 5, rotation: -7.5 * Math.PI / 180, lh: 1.1 },
+          bratruromiya: { url: "https://raw.githubusercontent.com/kayzzaoshi-code/Uploader/main/file_1771827988894.jpeg", centerX: 810, centerY: 1310, maxWidth: 650, maxHeight: 450, fontSize: 120, minFontSize: 15, lh: 1.2 },
+          bratumaru:    { url: "https://raw.githubusercontent.com/kayzzaoshi-code/Uploader/main/file_1771524973616.jpeg", centerX: 375, centerY: 565, maxWidth: 450, maxHeight: 250, fontSize: 75, minFontSize: 15, lh: 1.2 },
+        };
+        function bratLoadImage(url) {
+          return new Promise((res, rej) => {
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.onload = () => res(img);
+            img.onerror = () => rej(new Error('template gagal dimuat'));
+            img.src = url;
+          });
+        }
+        async function makeBratTemplate(text, key) {
+          const tpl = BRAT_TEMPLATES[key];
+          const bg = await bratLoadImage(tpl.url);
+          const W = bg.naturalWidth || bg.width, H = bg.naturalHeight || bg.height;
+          const c = document.createElement('canvas');
+          c.width = W; c.height = H;
+          const ctx = c.getContext('2d');
+          ctx.drawImage(bg, 0, 0, W, H);
+          const tokens = bratTokenize(String(text || ''));
+          const lhMult = tpl.lh || 1.2;
+          const isArea = tpl.areaX != null;
+          const maxW = isArea ? tpl.areaW : tpl.maxWidth;
+          let fontSize = tpl.fontSize;
+          let lines = bratLines(ctx, tokens, fontSize, maxW);
+          while (fontSize > (tpl.minFontSize || 10)) {
+            lines = bratLines(ctx, tokens, fontSize, maxW);
+            if (lines.length * fontSize * lhMult <= (isArea ? tpl.areaMaxH : tpl.maxHeight)) break;
+            fontSize -= 2;
+          }
+          const lineHeight = fontSize * lhMult;
+          const totalH = lines.length * lineHeight;
+          let cx, cy;
+          if (isArea) {
+            ctx.textAlign = 'left';
+            cx = tpl.areaX; cy = tpl.areaCY - totalH / 2 + lineHeight / 2;
+            for (let i = 0; i < lines.length; i++) {
+              const line = lines[i];
+              ctx.font = 'bold ' + fontSize + 'px sans-serif';
+              let x = cx;
+              for (const t of line.items) { if (t.type === 'text') { ctx.fillStyle = '#000'; ctx.fillText(t.value, x, cy + i * lineHeight); } x += t.w; }
+            }
+          } else {
+            cx = tpl.centerX != null ? tpl.centerX : W / 2 + (tpl.offX || 0);
+            cy = tpl.centerY != null ? tpl.centerY : H / 2 + (tpl.offY || 0);
+            ctx.save();
+            ctx.translate(cx, cy - totalH / 2 + lineHeight / 2 + (lines.length - 1) * lineHeight / 2 - (lines.length - 1) * lineHeight / 2);
+            ctx.translate(0, -(totalH / 2) + lineHeight / 2 - (-(totalH / 2) + lineHeight / 2));
+            if (tpl.rotation) ctx.rotate(tpl.rotation);
+            ctx.textBaseline = 'middle';
+            for (let i = 0; i < lines.length; i++) {
+              const line = lines[i];
+              ctx.font = 'bold ' + fontSize + 'px sans-serif';
+              let x = -line.width / 2;
+              const y = i * lineHeight;
+              for (const t of line.items) { if (t.type === 'text') { ctx.fillStyle = '#000'; ctx.fillText(t.value, x, y); } x += t.w; }
+            }
+            ctx.restore();
+          }
+          return c.toDataURL('image/png');
+        }
+
+        /* ═══ BRAT VIDEO (canvas + MediaRecorder, mirip bratvid.js) ═══ */
+        async function makeBratVideo(text, variant) {
+          const W = 512, H = 512;
+          const c = document.createElement('canvas');
+          c.width = W; c.height = H;
+          const ctx = c.getContext('2d');
+          const v2 = variant === 'v2';
+          const speed = v2 ? 2.2 : 1.4; /* px per frame */
+          const fontSize = v2 ? 42 : 58;
+          const bg = v2 ? '#8ACE00' : '#FFFFFF';
+          const fg = '#000000';
+
+          ctx.font = 'bold ' + fontSize + 'px sans-serif';
+          const words = String(text || '').split(/\s+/).filter(Boolean);
+          const lines = [];
+          let cur = '';
+          for (const w of words) {
+            const t = cur ? cur + ' ' + w : w;
+            if (ctx.measureText(t).width > W - 70 && cur) { lines.push(cur); cur = w; }
+            else cur = t;
+          }
+          if (cur) lines.push(cur);
+          const lineH = fontSize * 1.3;
+          const blockH = lines.length * lineH + H;
+          /* teks diulang 2x biar scroll mulus */
+          const full = [...lines, '', ...lines, ''];
+          const totalH = full.length * lineH;
+
+          const stream = c.captureStream(30);
+          const mime = MediaRecorder.isTypeSupported('video/webm;codecs=vp9') ? 'video/webm;codecs=vp9' : 'video/webm';
+          const rec = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 2500000 });
+          const chunks = [];
+          rec.ondataavailable = e => { if (e.data.size) chunks.push(e.data); };
+          const done = new Promise(res => { rec.onstop = () => res(new Blob(chunks, { type: 'video/webm' })); });
+          rec.start();
+
+          let y = 0;
+          const need = totalH + H * 2;
+          await new Promise(resolve => {
+            function frame() {
+              ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+              ctx.fillStyle = fg;
+              ctx.font = 'bold ' + fontSize + 'px sans-serif';
+              ctx.textBaseline = 'top';
+              const off = H - y; /* mulai dari bawah */
+              full.forEach((l, i) => {
+                const ly = off + i * lineH;
+                if (ly > -lineH && ly < H) ctx.fillText(l, (W - ctx.measureText(l).width) / 2, ly);
+              });
+              y += speed * 2;
+              if (y >= need) { resolve(); return; }
+              requestAnimationFrame(frame);
+            }
+            frame();
+          });
+          rec.stop();
+          const blob = await done;
+          return URL.createObjectURL(blob);
+        }
+
         const FEATURES = {
           /* ═══════════ AI ═══════════ */
           ai: [
@@ -1754,6 +1930,12 @@ Dashboard Elite v6.0 aktif dengan Glowing Themes. by Gilz.</pre>
             { id:'cv-ff', name:'Fake Rank FF', icon:'fa-fire', desc:'Kartu rank Free Fire palsu.', color:'pink',
               fields:[{k:'username',label:'Username',ph:'Budi'},{k:'level',label:'Level',ph:'60'},{k:'rank',label:'Rank',ph:'Grandmaster'},{k:'trophies',label:'Trophies',ph:'9999'}],
               run: async v => ({ type:'image', url:`https://api.kyzznekoo.my.id/api/img/v2/fakeff?username=${encodeURIComponent(v.username)}&level=${encodeURIComponent(v.level)}&rank=${encodeURIComponent(v.rank)}&trophies=${encodeURIComponent(v.trophies)}` }) },
+            { id:'cv-quote', name:'Quotes Maker', icon:'fa-quote-right', desc:'Bikin kartu quotes aesthetic.', color:'pink',
+              fields:[{k:'text',label:'Isi quotes',ph:'jangan menyerah sebelum berakhir',type:'textarea'},{k:'nama',label:'Nama (opsional)',ph:'Budi'},{k:'tema',label:'Tema',type:'select',options:['gelap','hijau','ungu','merah']}],
+              run: async v => ({ type:'image', url: await makeQuoteCard(v.text, v.nama, v.tema) }) },
+            { id:'cv-fakewa', name:'Fake Chat WhatsApp', icon:'fa-whatsapp', desc:'Bikin mock chat WA (buat bercanda).', color:'pink',
+              fields:[{k:'nama',label:'Nama kontak',ph:'Ibu Kos'},{k:'pesan',label:'Isi pesan',ph:'bayar kos sek sekarang',type:'textarea'},{k:'reply',label:'Balasan (opsional)',ph:'oke bu, sabar ya'},{k:'jam',label:'Jam',ph:'22:30'},{k:'posisi',label:'Posisi bubble',type:'select',options:['kanan (kamu)','kiri (dia)']}],
+              run: async v => ({ type:'image', url: await makeFakeChat(v.nama, v.pesan, v.reply, v.jam, v.posisi.includes('kanan') ? 'kanan' : 'kiri') }) },
             { id:'cv-balogo', name:'BA Logo', icon:'fa-font', desc:'Teks gaya logo BA.', color:'pink',
               fields:[{k:'text',label:'Teks',ph:'GILZ'}],
               run: async v => ({ type:'image', url:`https://api.nexray.web.id/maker/balogo?text=${encodeURIComponent(v.text)}` }) },
@@ -1974,16 +2156,22 @@ Dashboard Elite v6.0 aktif dengan Glowing Themes. by Gilz.</pre>
             { id:'sk-ttp', name:'TTP (Text to Picture)', icon:'fa-font', desc:'Teks jadi gambar sticker-style.', color:'violet',
               fields:[{k:'text',label:'Teks',ph:'halo ges'}],
               run: async v => ({ type:'image', url:`${NEX}/maker/ttp?text=${encodeURIComponent(v.text)}` }) },
+            { id:'sk-attp', name:'ATTP (Teks Warna-warni)', icon:'fa-palette', desc:'Teks gaya attp.', color:'violet',
+              fields:[{k:'text',label:'Teks',ph:'halo ges'}],
+              run: async v => ({ type:'image', url:`${NEX}/maker/attp?text=${encodeURIComponent(v.text)}` }) },
             { id:'sk-brat', name:'Brat Generator', icon:'fa-square', desc:'Teks ala album brat (persis plugin bot).', color:'violet',
               fields:[{k:'text',label:'Teks',ph:'gw anak pinter',type:'textarea'},{k:'style',label:'Warna',type:'select',options:['green','white','black','pink','blue','red']}],
               run: async v => ({ type:'image', url: await makeBrat(v.text, v.style) }) },
-            { id:'sk-emoji', name:'Emoji HD PNG', icon:'fa-face-smile', desc:'Emoji jadi PNG HD (twemoji).', color:'violet',
-              fields:[{k:'emoji',label:'Emoji',ph:'😎'}],
-              run: async v => {
-                const codes = [...(v.emoji||'')].map(c => c.codePointAt(0).toString(16)).join('-');
-                if (!codes) throw new Error('masukkan emoji');
-                return { type:'image', url:`https://cdn.jsdelivr.net/gh/jdecked/twemoji@latest/assets/72x72/${codes}.png` };
-              } },
+            { id:'sk-bratvid', name:'Brat Video (scroll)', icon:'fa-film', desc:'Video brat teks scroll naik (webm).', color:'violet', slow:true,
+              fields:[{k:'text',label:'Teks',ph:'gw anak ganteng nggak sombong',type:'textarea'}],
+              run: async v => ({ type:'video', url: await makeBratVideo(v.text, 'v1'), filename:'bratvid.webm' }) },
+            { id:'sk-bratvid2', name:'Brat Video V2 (cepat + hijau)', icon:'fa-clapperboard', desc:'Brat video versi 2 — lebih cepat, tema hijau.', color:'violet', slow:true,
+              fields:[{k:'text',label:'Teks',ph:'pagi semuanya',type:'textarea'}],
+              run: async v => ({ type:'video', url: await makeBratVideo(v.text, 'v2'), filename:'bratvid2.webm' }) },
+            ...Object.entries(BRAT_TEMPLATES).map(([key, tpl]) => ({
+              id:'sk-'+key, name:'Brat '+key.replace('brat','').replace(/^./, c=>c.toUpperCase()), icon:'fa-image', desc:'Brat custom template.', color:'violet',
+              fields:[{k:'text',label:'Teks',ph:'halo ges'}],
+              run: async v => ({ type:'image', url: await makeBratTemplate(v.text, key) }) })),
           ],
           /* ═══════════ TOOLS & CONVERTER ═══════════ */
           tools: [
@@ -2017,6 +2205,52 @@ Dashboard Elite v6.0 aktif dengan Glowing Themes. by Gilz.</pre>
                 const t = v.text||'';
                 const words = t.trim() ? t.trim().split(/\s+/).length : 0;
                 return { type:'text', title:'Statistik', text:`📊 ${words} kata · ${t.length} karakter · ${t.replace(/\s/g,'').length} tanpa spasi · ${t.split('\n').length} baris` };
+              } },
+            { id:'tl-calc', name:'Kalkulator', icon:'fa-calculator', desc:'Hitung ekspresi matematika.', color:'brand',
+              fields:[{k:'text',label:'Ekspresi',ph:'(250*4)+100/2'}],
+              run: async v => {
+                const expr = String(v.text || '').replace(/[^0-9+\-*/().,%\s]/g, '');
+                if (!expr.trim()) throw new Error('ekspresi gak valid');
+                try {
+                  const r = Function('"use strict";return (' + expr.replace(/,/g, '.') + ')')();
+                  if (typeof r !== 'number' || !isFinite(r)) throw new Error();
+                  return { type:'copy', title: expr.trim() + ' =', text: String(r) };
+                } catch (e) { throw new Error('ekspresi matematika gak bisa dihitung'); }
+              } },
+            { id:'tl-umur', name:'Hitung Umur', icon:'fa-cake-candles', desc:'Umur lengkap + zodiak dari tanggal lahir.', color:'brand',
+              fields:[{k:'tgl',label:'Tanggal (DD-MM-YYYY)',ph:'17-08-2008'}],
+              run: async v => {
+                const m = String(v.tgl||'').match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);
+                if (!m) throw new Error('format: DD-MM-YYYY, contoh 17-08-2008');
+                const d = new Date(Number(m[3]), Number(m[2]) - 1, Number(m[1]));
+                if (isNaN(d)) throw new Error('tanggal gak valid');
+                const now = new Date();
+                let y = now.getFullYear() - d.getFullYear();
+                let mo = now.getMonth() - d.getMonth();
+                let dd = now.getDate() - d.getDate();
+                if (dd < 0) { mo--; dd += new Date(now.getFullYear(), now.getMonth(), 0).getDate(); }
+                if (mo < 0) { y--; mo += 12; }
+                const zod = [['capricorn',1,19],['aquarius',2,18],['pisces',3,20],['aries',4,19],['taurus',5,20],['gemini',6,20],['cancer',7,22],['leo',8,22],['virgo',9,22],['libra',10,22],['scorpio',11,21],['sagittarius',12,21],['capricorn',12,31]];
+                const zz = zod.find(z => (d.getMonth() + 1 === z[1] && d.getDate() <= z[2]) || (d.getMonth() + 1 === z[1] % 12 + 1 && false)) || zod.filter(z => z[1] === d.getMonth() + 1)[0];
+                const zname = zz ? zz[0] : 'capricorn';
+                const hari = Math.floor((now - d) / 86400000);
+                return { type:'text', title:'🎂 Umur Kamu', text:`📅 Lahir: ${String(d.getDate()).padStart(2,'0')}-${String(d.getMonth()+1).padStart(2,'0')}-${d.getFullYear()}\n🎂 Umur: ${y} tahun ${mo} bulan ${dd} hari\n🔆 Zodiak: ${zname}\n🌙 Total hari: ${hari.toLocaleString('id-ID')} hari\n⏰ Total jam: ${Math.floor((now-d)/3600000).toLocaleString('id-ID')} jam` };
+              } },
+            { id:'tl-wr', name:'WR Calculator (MLBB)', icon:'fa-gamepad', desc:'Hitung win rate & jumlah menang yang dibutuhkan.', color:'brand',
+              fields:[{k:'t',label:'Total match',ph:'500'},{k:'m',label:'Match menang',ph:'250'},{k:'target',label:'Target WR %',ph:'60'}],
+              run: async v => {
+                const t = Number(v.t), win = Number(v.m), tgt = Number(v.target);
+                if (!t || win > t || tgt > 100) throw new Error('input gak valid (menang gak boleh > total, target maks 100)');
+                const wr = (win / t) * 100;
+                const need = tgt <= wr ? 0 : Math.ceil((tgt / 100 * t - win) / (1 - tgt / 100));
+                return { type:'text', title:'📊 Win Rate', text:`⚔️ WR sekarang: ${wr.toFixed(2)}% (${win}/${t})\n🎯 Target: ${tgt}%\n${need > 0 ? `🏆 Perlu menang ${need.toLocaleString('id-ID')} match BERUNTUN (tanpa kalah)` : '✅ Target udah tercapai!'}` };
+              } },
+            { id:'tl-tts', name:'Text to Speech', icon:'fa-volume-high', desc:'Ubah teks jadi suara (Google Voice).', color:'brand',
+              fields:[{k:'text',label:'Teks',ph:'halo semuanya, selamat datang',type:'textarea'},{k:'lang',label:'Bahasa/Aksen',type:'select',options:['id (Indonesia)','ja (Jepang)','en (Inggris)','ko (Korea)','ar (Arab)']}],
+              run: async v => {
+                const lang = (v.lang || 'id').split(' ')[0];
+                const url = `https://translate.google.com/translate_tts?ie=UTF-8&tl=${lang}&client=tw-ob&q=${encodeURIComponent(String(v.text).slice(0, 180))}`;
+                return { type:'audio', url, title:'Suara (perkiraan)' };
               } },
             { id:'tl-case', name:'Case Converter', icon:'fa-font', desc:'UPPER/lower/Title/camelCase/snake/kebab.', color:'brand',
               fields:[{k:'text',label:'Teks',ph:'halo dunia baruku'},{k:'mode',label:'Mode',type:'select',options:['UPPERCASE','lowercase','Title Case','CamelCase','snake_case','kebab-case','aLtErNaTiNg']}],
@@ -2224,6 +2458,100 @@ Dashboard Elite v6.0 aktif dengan Glowing Themes. by Gilz.</pre>
             return c.toDataURL('image/png');
         }
 
+        /* ═══ QUOTES MAKER (client-side canvas) ═══ */
+        async function makeQuoteCard(text, nama, theme) {
+          const themes = { gelap: { bg1: '#0f172a', bg2: '#1e293b', fg: '#f8fafc', ac: '#38bdf8' }, hijau: { bg1: '#052e16', bg2: '#064e3b', fg: '#ecfdf5', ac: '#34d399' }, ungu: { bg1: '#1e1b4b', bg2: '#312e81', fg: '#eef2ff', ac: '#a78bfa' }, merah: { bg1: '#450a0a', bg2: '#7f1d1d', fg: '#fef2f2', ac: '#f87171' } };
+          const th = themes[theme] || themes.gelap;
+          const W = 800, H = 1000;
+          const c = document.createElement('canvas');
+          c.width = W; c.height = H;
+          const ctx = c.getContext('2d');
+          const grad = ctx.createLinearGradient(0, 0, W, H);
+          grad.addColorStop(0, th.bg1); grad.addColorStop(1, th.bg2);
+          ctx.fillStyle = grad; ctx.fillRect(0, 0, W, H);
+          ctx.strokeStyle = th.ac + '55'; ctx.lineWidth = 3;
+          ctx.strokeRect(40, 40, W - 80, H - 80);
+          ctx.fillStyle = th.ac;
+          ctx.font = 'bold 120px serif';
+          ctx.fillText('\u201C', 80, 190);
+          let fontSize = 52;
+          ctx.textAlign = 'center';
+          const words = String(text || '').split(/\s+/);
+          let lines = [];
+          for (; fontSize >= 24; fontSize -= 2) {
+            ctx.font = '500 ' + fontSize + 'px sans-serif';
+            lines = []; let cur = '';
+            for (const w of words) {
+              const t = cur ? cur + ' ' + w : w;
+              if (ctx.measureText(t).width > W - 220 && cur) { lines.push(cur); cur = w; }
+              else cur = t;
+            }
+            if (cur) lines.push(cur);
+            if (lines.length * fontSize * 1.4 <= H - 420) break;
+          }
+          const startY = H / 2 - (lines.length - 1) * fontSize * 0.7 - 40;
+          ctx.fillStyle = th.fg;
+          ctx.font = '500 ' + fontSize + 'px sans-serif';
+          lines.forEach((l, i) => ctx.fillText(l, W / 2, startY + i * fontSize * 1.4));
+          if (nama) {
+            ctx.fillStyle = th.ac;
+            ctx.font = 'bold 34px sans-serif';
+            ctx.fillText('- ' + nama + ' -', W / 2, startY + lines.length * fontSize * 1.4 + 70);
+          }
+          ctx.fillStyle = th.ac + '88';
+          ctx.font = 'bold 22px sans-serif';
+          ctx.fillText('GILZ PREMIUM CENTER', W / 2, H - 90);
+          return c.toDataURL('image/png');
+        }
+
+        /* ═══ FAKE WA CHAT (client-side canvas) ═══ */
+        async function makeFakeChat(nama, pesan, reply, jam, posisi) {
+          const W = 720, H = 520;
+          const c = document.createElement('canvas');
+          c.width = W; c.height = H;
+          const ctx = c.getContext('2d');
+          ctx.fillStyle = '#0b141a'; ctx.fillRect(0, 0, W, H);
+          /* header */
+          ctx.fillStyle = '#1f2c33'; ctx.fillRect(0, 0, W, 90);
+          ctx.fillStyle = '#aebac1'; ctx.font = 'bold 30px sans-serif'; ctx.textAlign = 'left';
+          ctx.fillText(nama || 'Kontak', 110, 55);
+          ctx.fillStyle = '#6a7175'; ctx.font = '22px sans-serif';
+          ctx.fillText('online', 110, 80);
+          ctx.beginPath(); ctx.arc(60, 45, 26, 0, Math.PI * 2);
+          ctx.fillStyle = '#005c4b'; ctx.fill();
+          ctx.fillStyle = '#fff'; ctx.font = 'bold 28px sans-serif'; ctx.textAlign = 'center';
+          ctx.fillText((nama || 'K')[0].toUpperCase(), 60, 56);
+          /* bubble */
+          const isKanan = posisi === 'kanan';
+          const bx = isKanan ? W - 380 : 40, by = 150, bw = 340, bh = reply ? 170 : 100;
+          ctx.fillStyle = isKanan ? '#005c4b' : '#1f2c33';
+          ctx.beginPath();
+          const r = 16;
+          ctx.moveTo(bx + r, by); ctx.arcTo(bx + bw, by, bx + bw, by + bh, r); ctx.arcTo(bx + bw, by + bh, bx, by + bh, r); ctx.arcTo(bx, by + bh, bx, by, r); ctx.arcTo(bx, by, bx + bw, by, r); ctx.closePath(); ctx.fill();
+          ctx.fillStyle = '#e9edef'; ctx.font = '24px sans-serif'; ctx.textAlign = 'left';
+          const maxChars = 30;
+          const p1 = String(pesan || '').slice(0, maxChars * 2);
+          const plines = p1.match(new RegExp('.{1,' + maxChars + '}', 'g')) || [' '];
+          plines.slice(0, 3).forEach((l, i) => ctx.fillText(l, bx + 18, by + 40 + i * 32));
+          ctx.fillStyle = '#8fa3ab'; ctx.font = '18px sans-serif'; ctx.textAlign = 'right';
+          ctx.fillText((jam || '12:00') + (isKanan ? ' \u2713\u2713' : ''), bx + bw - 16, by + bh - 16);
+          if (reply) {
+            ctx.fillStyle = '#042f2a'; 
+            ctx.fillRect(bx + 14, by + bh + 12, bw - 28, 70);
+            ctx.fillStyle = '#8fa3ab'; ctx.font = 'bold 19px sans-serif'; ctx.textAlign = 'left';
+            ctx.fillText(nama || 'Kontak', bx + 30, by + bh + 36);
+            ctx.fillStyle = '#e9edef'; ctx.font = '19px sans-serif';
+            ctx.fillText(String(reply).slice(0, 34), bx + 30, by + bh + 62);
+          }
+          /* input bar */
+          ctx.fillStyle = '#1f2c33'; ctx.fillRect(0, H - 70, W, 70);
+          ctx.fillStyle = '#2a3942';
+          ctx.beginPath(); ctx.roundRect(30, H - 55, W - 130, 40, 20); ctx.fill();
+          ctx.fillStyle = '#8696a0'; ctx.font = '20px sans-serif'; ctx.textAlign = 'left';
+          ctx.fillText('Ketik pesan', 50, H - 29);
+          return c.toDataURL('image/png');
+        }
+
         /* ═══ renderer ═══ */
         const COLOR_MAP = { cyan:'text-cyan-300', pink:'text-pink-300', amber:'text-amber-300', fuchsia:'text-fuchsia-300', emerald:'text-emerald-300', rose:'text-rose-300', violet:'text-violet-300', brand:'text-brand-primary' };
         const BG_MAP = { cyan:'bg-cyan-500/15 text-cyan-400', pink:'bg-pink-500/15 text-pink-400', amber:'bg-amber-500/15 text-amber-400', fuchsia:'bg-fuchsia-500/15 text-fuchsia-400', emerald:'bg-emerald-500/15 text-emerald-400', rose:'bg-rose-500/15 text-rose-400', violet:'bg-violet-500/15 text-violet-400', brand:'bg-brand-primary/15 text-brand-primary' };
@@ -2313,7 +2641,11 @@ Dashboard Elite v6.0 aktif dengan Glowing Themes. by Gilz.</pre>
 
         function renderFeatResult(result, out) {
           let html = '';
-          if (out.type === 'image') {
+          if (out.type === 'video') {
+            html = `<video src="${out.url}" controls autoplay loop class="w-full max-h-80 rounded-2xl border border-white/10 bg-black"></video><a href="${out.url}" download="${out.filename || 'video.webm'}" class="block mt-2 w-full bg-white/10 hover:bg-white/20 border border-white/15 text-white font-bold py-2.5 rounded-xl text-center text-[11px]">⬇️ Simpan Video</a>`;
+          } else if (out.type === 'audio') {
+            html = `<audio src="${out.url}" controls class="w-full"></audio><p class="text-[10px] text-slate-500 mt-1 text-center">${(out.title||'')}</p>`;
+          } else if (out.type === 'image') {
             const imgs = out.multi || [{ label:'', url: out.url }];
             html = imgs.map(x => `<div class="text-center"><img src="${x.url}" class="max-h-80 mx-auto rounded-2xl border border-white/10" alt="hasil" onerror="this.replaceWith(Object.assign(document.createElement('p'),{className:'text-xs text-rose-400 py-6',innerText:'⚠️ gambar gagal dimuat'}))"/>${x.label?`<p class="text-[10px] text-slate-500 mt-1">${x.label}</p>`:''}<a href="${x.url}" target="_blank" rel="noopener" class="inline-block mt-2 bg-white/10 hover:bg-white/20 border border-white/15 text-white font-bold py-2 px-5 rounded-xl text-[11px]">⬇️ Unduh Gambar</a></div>`).join('');
           } else if (out.type === 'link') {
