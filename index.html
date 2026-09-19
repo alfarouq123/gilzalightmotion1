@@ -1725,6 +1725,7 @@ Dashboard Elite v6.0 aktif dengan Glowing Themes. by Gilz.</pre>
               run: async v => ({ type:'copy', title:'Hasil terjemahan', text: await aiPollinations(`Terjemahkan teks berikut ke bahasa ${v.to}, balas HANYA hasil terjemahannya tanpa penjelasan:\n\n${v.text}`) }) },
             { id:'ai-img', name:'Text → Image', icon:'fa-wand-magic-sparkles', desc:'Generate gambar dari teks (AI).', color:'cyan',
               fields:[{k:'text',label:'Prompt',ph:'kucing astronot style anime'},{k:'ratio',label:'Rasio',type:'select',options:['1:1 (kotak)','9:16 (portrait)','16:9 (landscape)']}],
+              slow:true, /* generate ±10-20 detik */
               run: async v => {
                 const dims = { '1:1 (kotak)':'768x768', '9:16 (portrait)':'720x1280', '16:9 (landscape)':'1280x720' }[v.ratio] || '768x768';
                 return { type:'image', title:'Hasil AI', url:`https://image.pollinations.ai/prompt/${encodeURIComponent(v.text)}?width=${dims.split('x')[0]}&height=${dims.split('x')[1]}&nologo=true&safe=false` };
@@ -2066,11 +2067,20 @@ Dashboard Elite v6.0 aktif dengan Glowing Themes. by Gilz.</pre>
             const res = await fetch('https://text.pollinations.ai/openai', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ model: 'openai', messages: [{ role: 'system', content: 'Kamu asisten web GILZ Premium Center. Jawab bahasa Indonesia santai, langsung ke inti.' }, { role: 'user', content: prompt }] }),
-              signal: AbortSignal.timeout(90000),
+              body: JSON.stringify({ model: 'openai-fast', messages: [{ role: 'system', content: 'Kamu asisten web GILZ Premium Center. Jawab bahasa Indonesia santai, langsung ke inti.' }, { role: 'user', content: prompt }] }),
+              signal: AbortSignal.timeout(45000),
             });
             const data = await res.json();
-            const t = data?.choices?.[0]?.message?.content?.trim();
+            let t = data?.choices?.[0]?.message?.content?.trim();
+            if (!t) {
+              /* retry sekali pakai model openai (lebih pinter, lebih lama) */
+              const res2 = await fetch('https://text.pollinations.ai/openai', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ model: 'openai', messages: [{ role: 'user', content: prompt }] }),
+                signal: AbortSignal.timeout(90000),
+              });
+              t = (await res2.json())?.choices?.[0]?.message?.content?.trim();
+            }
             if (!t) throw new Error('balasan kosong');
             return t;
           } catch (e) { glog('error', 'pollinations: ' + e.message); throw new Error('AI gagal merespon: ' + e.message); }
@@ -2278,9 +2288,15 @@ Dashboard Elite v6.0 aktif dengan Glowing Themes. by Gilz.</pre>
             if (!fl.type && !vals[fl.k]) { outputBox.innerText = formatResponse('GAGAL','❌',`┌─ ⚠️ Kolom *${fl.label}* masih kosong!\n╰━━━━━━━━━━━━━━━━━━`); return; }
           }
           const btn = form.querySelector('.feat-run');
-          if (btn) { btn.disabled = true; btn.style.opacity = .5; btn.textContent = '⏳ Memproses...'; }
+          if (btn) { btn.disabled = true; btn.style.opacity = .5; }
           result.classList.add('hidden');
-          outputBox.innerText = `⏳ ${f.name}: sedang diproses...`;
+          outputBox.innerText = `⏳ ${f.name}: sedang diproses...${f.slow ? ' (±10-20 detik, sabar ya)' : ''}`;
+          const t0 = Date.now();
+          const tick = setInterval(() => {
+            const s = Math.round((Date.now() - t0) / 1000);
+            if (btn) btn.textContent = '⏳ Memproses... ' + s + 's';
+            outputBox.innerText = `⏳ ${f.name}: sedang diproses... (${s}s)`;
+          }, 1000);
           try {
             const out = await f.run(vals);
             outputBox.innerText = formatResponse(f.name.toUpperCase(), '✅', `┌─── ✅ *SELESAI* ───\n├─ 🎯 ${f.name}\n╰━━━━━━━━━━━━━━━━━━━━━━━━━━━╯`);
@@ -2289,7 +2305,9 @@ Dashboard Elite v6.0 aktif dengan Glowing Themes. by Gilz.</pre>
             glog('error', `${f.id}: ${err.message}`);
             outputBox.innerText = formatResponse(f.name.toUpperCase(), '❌', `┌─── ⚠️ GAGAL ───\n├─ ${err.message}\n╰━━━━━━━━━━━━━━━━━━━━━━━━━━━╯\n🧾 error tersimpan di Log (tombol kiri bawah)`);
           } finally {
+            clearInterval(tick);
             if (btn) { btn.disabled = false; btn.style.opacity = 1; btn.textContent = '⚡ Jalankan'; }
+            try { box.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); } catch (e) {}
           }
         };
 
