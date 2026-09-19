@@ -125,6 +125,8 @@
                 <p class="text-xs text-slate-400 mt-1">Akses fitur Pro tanpa batas & tanpa watermark</p>
             </div>
 
+            <div id="auth-msg" class="hidden text-[11px] font-bold mb-3 px-3 py-2 rounded-xl"></div>
+
             <!-- Navigation Tabs -->
             <div class="flex bg-black/40 border border-white/10 rounded-2xl p-1 mb-5">
                 <button id="authLoginTabBtn" onclick="switchAuthTab('login')" class="flex-1 py-2.5 rounded-xl text-xs font-bold transition-all bg-gradient-to-r from-brand-primary to-brand-secondary text-slate-950 shadow-md">Masuk</button>
@@ -832,6 +834,13 @@ Dashboard Elite v6.0 aktif dengan Glowing Themes. by Gilz.</pre>
         </div>
     </main>
 
+    <!-- FLOATING LOG BUTTON -->
+    <div class="fixed bottom-6 left-4 z-40">
+        <button onclick="toggleLogPanel()" title="Log Sistem" class="bg-dark-800/90 hover:bg-dark-700 border border-white/15 text-slate-300 hover:text-white p-3 rounded-full shadow-lg transition-all ring-1 ring-white/10">
+            <i class="fa-solid fa-clipboard-list text-sm"></i>
+        </button>
+    </div>
+
     <!-- FLOATING GILZZ GEMINI AI CHAT WIDGET -->
     <div class="fixed bottom-6 right-6 z-50">
         <button onclick="toggleAiChat()" id="ai-chat-btn" class="relative group bg-gradient-to-r from-brand-primary via-brand-secondary to-brand-accent p-4 rounded-full shadow-[0_0_35px_var(--brand-glow)] hover:scale-110 transition-all duration-350 flex items-center justify-center ring-4 ring-dark-950">
@@ -957,6 +966,32 @@ Dashboard Elite v6.0 aktif dengan Glowing Themes. by Gilz.</pre>
             }
         }
 
+        /* ═══ ERROR LOG — semua error fitur kesimpan di sini + console ═══ */
+        window.__GILZ_LOG = [];
+        function glog(type, msg) {
+            const entry = { t: new Date().toLocaleTimeString('id-ID'), type, msg: String(msg).slice(0, 300) };
+            window.__GILZ_LOG.push(entry);
+            if (window.__GILZ_LOG.length > 100) window.__GILZ_LOG.shift();
+            if (type === 'error') console.error('[GILZ]', msg);
+        }
+        function toggleLogPanel() {
+            let panel = document.getElementById('gilz-log-panel');
+            if (!panel) {
+                panel = document.createElement('div');
+                panel.id = 'gilz-log-panel';
+                panel.className = 'fixed bottom-24 left-4 z-[60] w-[90vw] max-w-sm glass-panel rounded-3xl border border-white/15 shadow-2xl p-4 max-h-[50vh] overflow-y-auto custom-scrollbar';
+                document.body.appendChild(panel);
+            }
+            if (panel.classList.contains('hidden')) {
+                const logs = window.__GILZ_LOG.slice().reverse();
+                panel.innerHTML = '<div class="flex items-center justify-between mb-2"><p class="text-xs font-black text-white">🧾 Log Sistem (' + logs.length + ')</p><button onclick="toggleLogPanel()" class="text-slate-400 hover:text-white text-xs">✕</button></div>' +
+                    (logs.length ? logs.map(l => '<div class="text-[10px] font-mono mb-1 ' + (l.type === 'error' ? 'text-rose-300' : 'text-slate-400') + '">[' + l.t + '] ' + l.type.toUpperCase() + ': ' + l.msg.replace(/</g, '&lt;') + '</div>').join('') : '<p class="text-[10px] text-slate-500">Belum ada log.</p>');
+                panel.classList.remove('hidden');
+            } else {
+                panel.classList.add('hidden');
+            }
+        }
+
         /* Google Login — client ID diatur di script.js (GILZ_GOOGLE_CLIENT_ID).
            Kalau belum diisi: otomatis fallback ke input email manual. */
         function gilzGoogleReady() {
@@ -991,25 +1026,21 @@ Dashboard Elite v6.0 aktif dengan Glowing Themes. by Gilz.</pre>
             })
         }
 
-        function triggerGoogleAccountSelect() {
-            if (gilzGoogleReady()) {
-                gilzGoogleInit()
-                google.accounts.id.prompt()
-            } else {
-                promptFallbackEmail()
-            }
-        }
+
 
         function handleCredentialResponse(response) {
             try {
-                const responsePayload = parseJwt(response.credential);
-                if (responsePayload && responsePayload.email) {
-                    onLoginSuccess(responsePayload.email, 'Google');
-                } else {
-                    promptFallbackEmail();
+                const p = parseJwt(response.credential);
+                if (p?.email) {
+                    const accounts = getAccounts();
+                    if (!accounts.some(a => a.email === p.email.toLowerCase())) {
+                        accounts.push({ name: p.name || p.given_name || p.email.split('@')[0], email: p.email.toLowerCase(), pass: 'google-oauth', created: Date.now() });
+                        saveAccounts(accounts);
+                    }
+                    onLoginSuccess(p.email, 'Google');
                 }
             } catch (e) {
-                promptFallbackEmail();
+                authMsg('Login Google gagal: ' + e.message, false);
             }
         }
 
@@ -1022,32 +1053,84 @@ Dashboard Elite v6.0 aktif dengan Glowing Themes. by Gilz.</pre>
             return JSON.parse(jsonPayload);
         }
 
-        function promptFallbackEmail() {
-            const userEmail = prompt("Pilih/Masukkan email HP Anda untuk aktivasi Alight Motion Premium:");
-            if (userEmail && userEmail.includes("@")) {
-                onLoginSuccess(userEmail, 'Email HP');
-            }
+
+
+        /* ═══ DATABASE AKUN (localStorage) ═══ */
+        function getAccounts() {
+            try { return JSON.parse(localStorage.getItem('amfree_accounts') || '[]'); } catch { return []; }
+        }
+        function saveAccounts(list) {
+            localStorage.setItem('amfree_accounts', JSON.stringify(list.slice(0, 200)));
+        }
+        function authMsg(text, ok) {
+            const box = document.getElementById('auth-msg');
+            if (!box) return;
+            box.textContent = text;
+            box.className = 'text-[11px] font-bold mb-3 px-3 py-2 rounded-xl ' + (ok ? 'text-emerald-300 bg-emerald-500/10 border border-emerald-500/25' : 'text-rose-300 bg-rose-500/10 border border-rose-500/25');
+            box.classList.remove('hidden');
+        }
+        function clearAuthMsg() {
+            const box = document.getElementById('auth-msg');
+            if (box) box.classList.add('hidden');
         }
 
         function handleAuthSubmit(event, actionType) {
             event.preventDefault();
-            const emailInput = actionType === 'Masuk' ? 
-                document.getElementById('loginEmailInput').value : 
-                document.getElementById('regEmailInput').value;
-            
-            onLoginSuccess(emailInput, actionType);
+            clearAuthMsg();
+
+            if (actionType === 'Masuk') {
+                const email = document.getElementById('loginEmailInput').value.trim().toLowerCase();
+                const pass = document.getElementById('loginPassInput').value;
+                if (!email || !pass) return authMsg('Email dan kata sandi wajib diisi!', false);
+                const acc = getAccounts().find(a => a.email === email);
+                if (!acc) return authMsg('❌ Akun tidak ditemukan. Daftar dulu ya!', false);
+                if (acc.pass !== pass) return authMsg('❌ Kata sandi salah!', false);
+                onLoginSuccess(email, 'Email & Sandi');
+            } else {
+                const name = document.getElementById('regNameInput').value.trim();
+                const email = document.getElementById('regEmailInput').value.trim().toLowerCase();
+                const pass = document.getElementById('regPassInput').value;
+                if (!name || name.length < 2) return authMsg('Nama minimal 2 karakter!', false);
+                if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return authMsg('Format email tidak valid!', false);
+                if (pass.length < 6) return authMsg('Kata sandi minimal 6 karakter!', false);
+                const accounts = getAccounts();
+                if (accounts.some(a => a.email === email)) return authMsg('❌ Email sudah terdaftar. Langsung login aja!', false);
+                accounts.push({ name, email, pass, created: Date.now() });
+                saveAccounts(accounts);
+                glog('info', 'akun baru daftar: ' + email);
+                authMsg('✅ Akun berhasil dibuat! Silakan login dengan email & sandi kamu.', true);
+                document.getElementById('regNameInput').value = '';
+                document.getElementById('regEmailInput').value = '';
+                document.getElementById('regPassInput').value = '';
+                setTimeout(() => switchAuthTab('login'), 900);
+            }
         }
 
         function onLoginSuccess(email, method) {
+            const acc = getAccounts().find(a => a.email === String(email).toLowerCase());
             localStorage.setItem('amfree_logged_in', 'true');
             localStorage.setItem('amfree_email', email);
+            localStorage.setItem('amfree_name', acc?.name || email.split('@')[0]);
             document.getElementById('login-modal').classList.add('hidden');
-            
+            glog('info', 'login sukses: ' + email + ' via ' + method);
+
             const consoleBox = document.getElementById('output-box');
             if(consoleBox) {
-                consoleBox.innerText = formatResponse('LOGIN BERHASIL', '🔓', `Autentikasi Berhasil via ${method}!\nEmail Terdaftar: ${email}\nStatus: Aktif 1 Tahun Premium Alight Motion Pro.`);
+                consoleBox.innerText = formatResponse('LOGIN BERHASIL', '🔓', `┌─── 🔓 *LOGIN BERHASIL* ───\n├─ 👤 ${(acc?.name || email.split('@')[0])}\n├─ 📧 ${email}\n├─ 🔑 Metode: ${method}\n╰━━━━━━━━━━━━━━━━━━━━━━━━━━━╯\n\nSelamat datang di GILZ Premium Center!\nSemua fitur di panel ini sekarang bisa dipakai.`);
             }
         }
+
+        /* Google login: kalau client ID belum dipasang, JANGAN minta email premium. */
+        function triggerGoogleAccountSelect() {
+            if (gilzGoogleReady()) {
+                gilzGoogleInit();
+                google.accounts.id.prompt();
+            } else {
+                authMsg('⚠️ Login Google belum dikonfigurasi admin. Pakai Daftar / Masuk dengan email & sandi di bawah.', false);
+                document.getElementById('loginEmailInput')?.focus();
+            }
+        }
+        function promptFallbackEmail() { triggerGoogleAccountSelect(); }
 
         function handleLogout() {
             localStorage.removeItem('amfree_logged_in');
@@ -1622,18 +1705,36 @@ Dashboard Elite v6.0 aktif dengan Glowing Themes. by Gilz.</pre>
         const FEATURES = {
           /* ═══════════ AI ═══════════ */
           ai: [
-            { id:'ai-gpt', name:'AI Chat (GPT)', icon:'fa-robot', desc:'Tanya apa aja ke AI.', color:'cyan',
+            { id:'ai-chat', name:'AI Chat (Andal)', icon:'fa-robot', desc:'Chat AI paling stabil — tanya apa aja.', color:'cyan',
               fields:[{k:'text',label:'Pertanyaan',ph:'apa itu alight motion?',type:'textarea'}],
-              run: async v => ({ type:'text', title:'AI', text: await apiPick(`${NEX}/ai/gpt-3.5-turbo?text=${encodeURIComponent(v.text)}`, r => r?.result || r?.data || r?.response) }) },
-            { id:'ai-simi', name:'SimSimi', icon:'fa-comment-dots', desc:'Chat bot nakal.', color:'cyan',
+              run: async v => ({ type:'text', title:'AI', text: await aiPollinations(v.text) }) },
+            { id:'ai-gpt', name:'GPT-3.5 Turbo', icon:'fa-bolt', desc:'Tanya ke GPT-3.5 (nexray).', color:'cyan',
+              fields:[{k:'text',label:'Pertanyaan',ph:'buatkan caption instagram lucu'}],
+              run: async v => ({ type:'text', title:'GPT-3.5', text: await apiPick(`${NEX}/ai/gpt-3.5-turbo?text=${encodeURIComponent(v.text)}`, r => r?.result || r?.data) }) },
+            { id:'ai-simi', name:'SimSimi', icon:'fa-comment-dots', desc:'Chat bot nakal SimSimi.', color:'cyan',
               fields:[{k:'text',label:'Kata/kalimat',ph:'halo simi'}],
               run: async v => ({ type:'text', title:'SimSimi', text: await apiPick(`${NEX}/ai/simisimi?text=${encodeURIComponent(v.text)}`, r => r?.result || r?.data) }) },
             { id:'ai-math', name:'Math Solver', icon:'fa-square-root-variable', desc:'Selesaikan soal matematika.', color:'cyan',
-              fields:[{k:'text',label:'Soal',ph:'2x+5=15, x=?'}],
-              run: async v => ({ type:'text', title:'Jawaban', text: await apiPick(`${NEX}/ai/mathgpt?text=${encodeURIComponent(v.text)}`, r => r?.result || r?.data) }) },
-            { id:'ai-img', name:'Text → Image', icon:'fa-wand-magic-sparkles', desc:'Generate gambar dari teks.', color:'cyan',
-              fields:[{k:'text',label:'Prompt',ph:'kucing astronot pixel art'}],
-              run: async v => ({ type:'image', title:'Hasil', url:`https://api-abztech.zone.id/ai/genimg?text=${encodeURIComponent(v.text)}` }) },
+              fields:[{k:'text',label:'Soal',ph:'integral x^2 dx'}],
+              run: async v => {
+                try { return { type:'text', title:'Jawaban', text: await apiPick(`${NEX}/ai/mathgpt?text=${encodeURIComponent(v.text)}`, r => r?.result || r?.data) }; }
+                catch (e) { glog('error', 'mathgpt: ' + e.message + ' → fallback pollinations'); return { type:'text', title:'Jawaban (AI)', text: await aiPollinations('Selesaikan dan jelaskan singkat: ' + v.text) }; }
+              } },
+            { id:'ai-translate', name:'AI Translate', icon:'fa-language', desc:'Terjemahkan teks (auto deteksi).', color:'cyan',
+              fields:[{k:'text',label:'Teks',ph:'gw mau makan nasi goreng',type:'textarea'},{k:'to',label:'Ke bahasa',type:'select',options:['inggris','indonesia','jepang','korea','arab','sunda','jawa']}],
+              run: async v => ({ type:'copy', title:'Hasil terjemahan', text: await aiPollinations(`Terjemahkan teks berikut ke bahasa ${v.to}, balas HANYA hasil terjemahannya tanpa penjelasan:\n\n${v.text}`) }) },
+            { id:'ai-img', name:'Text → Image', icon:'fa-wand-magic-sparkles', desc:'Generate gambar dari teks (AI).', color:'cyan',
+              fields:[{k:'text',label:'Prompt',ph:'kucing astronot style anime'},{k:'ratio',label:'Rasio',type:'select',options:['1:1 (kotak)','9:16 (portrait)','16:9 (landscape)']}],
+              run: async v => {
+                const dims = { '1:1 (kotak)':'768x768', '9:16 (portrait)':'720x1280', '16:9 (landscape)':'1280x720' }[v.ratio] || '768x768';
+                return { type:'image', title:'Hasil AI', url:`https://image.pollinations.ai/prompt/${encodeURIComponent(v.text)}?width=${dims.split('x')[0]}&height=${dims.split('x')[1]}&nologo=true&safe=false` };
+              } },
+            { id:'ai-caption', name:'Caption Sosmed', icon:'fa-hashtag', desc:'Bikin caption IG/TikTok keren.', color:'cyan',
+              fields:[{k:'text',label:'Tema caption',ph:'liburan ke pantai'},{k:'vibe',label:'Vibe',type:'select',options:['lucu','aesthetic','sindiran','motivasi','cringe','galau']}],
+              run: async v => ({ type:'copy', title:'Caption', text: await aiPollinations(`Buat 3 caption ${v.vibe} bahasa gaul indonesia untuk postingan sosmed tentang: ${v.text}. Kasih emoji + 5 hashtag relevan.`) }) },
+            { id:'ai-review', name:'AI Review Kode', icon:'fa-code', desc:'Minta AI review/cari bug kode.', color:'cyan',
+              fields:[{k:'text',label:'Tempel kode',ph:'function halo(){...}',type:'textarea'}],
+              run: async v => ({ type:'text', title:'Review', text: await aiPollinations('Review kode ini, cari bug & kasih perbaikan singkat (bahasa indonesia):\n\n' + v.text) }) },
           ],
           /* ═══════════ CANVAS ═══════════ */
           canvas: [
@@ -1652,15 +1753,18 @@ Dashboard Elite v6.0 aktif dengan Glowing Themes. by Gilz.</pre>
             { id:'cv-ff', name:'Fake Rank FF', icon:'fa-fire', desc:'Kartu rank Free Fire palsu.', color:'pink',
               fields:[{k:'username',label:'Username',ph:'Budi'},{k:'level',label:'Level',ph:'60'},{k:'rank',label:'Rank',ph:'Grandmaster'},{k:'trophies',label:'Trophies',ph:'9999'}],
               run: async v => ({ type:'image', url:`https://api.kyzznekoo.my.id/api/img/v2/fakeff?username=${encodeURIComponent(v.username)}&level=${encodeURIComponent(v.level)}&rank=${encodeURIComponent(v.rank)}&trophies=${encodeURIComponent(v.trophies)}` }) },
-            { id:'cv-tiktokchat', name:'Fake Chat TikTok', icon:'fa-comment', desc:'Mock chat TikTok (masih beta — kadang gagal).', color:'pink',
-              fields:[{k:'text',label:'Isi chat',ph:'halo ges'}],
-              run: async v => ({ type:'image', url:`https://api.nexray.web.id/canvas/tiktokchat?text=${encodeURIComponent(v.text)}` }) },
+            { id:'cv-balogo', name:'BA Logo', icon:'fa-font', desc:'Teks gaya logo BA.', color:'pink',
+              fields:[{k:'text',label:'Teks',ph:'GILZ'}],
+              run: async v => ({ type:'image', url:`https://api.nexray.web.id/maker/balogo?text=${encodeURIComponent(v.text)}` }) },
           ],
           /* ═══════════ DOWNLOAD ═══════════ */
           download: [
             { id:'dl-ytmp3', name:'YouTube → MP3', icon:'fa-music', desc:'Konversi video YouTube jadi MP3.', color:'cyan',
               fields:[{k:'url',label:'Link YouTube',ph:'https://youtu.be/...'}],
               run: async v => azbDl(`${AZB}/ytmp3?url=${encodeURIComponent(v.url)}`) },
+            { id:'dl-ytmp4', name:'YouTube → MP4', icon:'fa-film', desc:'Unduh video YouTube.', color:'cyan',
+              fields:[{k:'url',label:'Link YouTube',ph:'https://youtu.be/...'}],
+              run: async v => azbDl(`${AZB}/ytmp4?url=${encodeURIComponent(v.url)}`) },
             { id:'dl-tt', name:'TikTok No Watermark', icon:'fa-brands fa-tiktok', desc:'Video TikTok HD + audio.', color:'cyan',
               fields:[{k:'url',label:'Link TikTok',ph:'https://vt.tiktok.com/...'}],
               run: async v => {
@@ -1739,26 +1843,34 @@ Dashboard Elite v6.0 aktif dengan Glowing Themes. by Gilz.</pre>
           ],
           /* ═══════════ RANDOM ═══════════ */
           random: [
-            ...['indonesia','japan','korea','china','thailand','vietnam'].map(n => ({
-              id:'rd-cecan-'+n, name:'Cecan '+({indonesia:'Indonesia',japan:'Jepang',korea:'Korea',china:'China',thailand:'Thailand',vietnam:'Vietnam'})[n], icon:'fa-user', desc:'Foto cewek cantik random.', color:'fuchsia', noFields:true,
+            ...['indonesia','japan','korea','china','thailand','vietnam','malaysia'].map(n => ({
+              id:'rd-cecan-'+n, name:'Cecan '+({indonesia:'Indonesia',japan:'Jepang',korea:'Korea',china:'China',thailand:'Thailand',vietnam:'Vietnam',malaysia:'Malaysia'})[n], icon:'fa-user', desc:'Foto cewek cantik random.', color:'fuchsia', noFields:true,
               run: async () => ({ type:'image', url:`https://api.nexray.web.id/random/cecan/${n}` }) })),
-            { id:'rd-anime', name:'Anime Waifu/Husbu', icon:'fa-star', desc:'Foto anime random.', color:'fuchsia',
-              fields:[{k:'type',label:'Tipe',type:'select',options:['waifu','husbu','neko','shinobu','megumin']}],
-              run: async v => ({ type:'image', url:`${NEX}/random/anime?type=${v.type}` }) },
-            { id:'rd-couple', name:'PP Couple', icon:'fa-people-arrows', desc:'Foto PP couple random.', color:'fuchsia', noFields:true,
+            ...['waifu','neko','shinobu','megumin'].map(t => ({
+              id:'rd-anime-'+t, name:'Anime '+t[0].toUpperCase()+t.slice(1), icon:'fa-star', desc:'Foto anime random ('+t+').', color:'fuchsia', noFields:true,
+              run: async () => ({ type:'image', url:`${NEX}/random/anime?type=${t}` }) })),
+            { id:'rd-ba', name:'Blackpink Admin', icon:'fa-image', desc:'Foto admin-style random.', color:'fuchsia', noFields:true,
+              run: async () => ({ type:'image', url:`https://api.nexray.web.id/random/ba` }) },
+            { id:'rd-couple', name:'PP Couple', icon:'fa-people-arrows', desc:'Foto PP couple random (cowok+cewek).', color:'fuchsia', noFields:true,
               run: async () => {
                 const r = await fetchJson('https://api.deline.web.id/random/ppcouple', 30000);
                 const c = r?.data || r?.result || r;
                 const male = c?.male || c?.cowok || c?.pp?.male;
                 const female = c?.female || c?.cewek || c?.pp?.female;
                 if (!male && !female) throw new Error('gak nemu');
-                return { type:'image', multi:[...(male?[{label:'👦 Cowok',url:male}]:[]), ...(female?[{label:'👧 Cewek',url:female}]:[])] };
+                return { type:'image', multi:[...(male?[{label:'👦 Cowok',url:male}]:[]), ...(female?[{label:'👧 Cewok',url:female}]:[])] };
               } },
             { id:'rd-dog', name:'Anjing Lucu', icon:'fa-dog', desc:'Foto anjing random.', color:'fuchsia', noFields:true,
               run: async () => {
                 const r = await fetchJson('https://dog.ceo/api/breeds/image/random', 20000);
                 if (!r?.message) throw new Error('gagal');
                 return { type:'image', url:r.message };
+              } },
+            { id:'rd-cat', name:'Kucing Lucu', icon:'fa-cat', desc:'Foto kucing random.', color:'fuchsia', noFields:true,
+              run: async () => {
+                const r = await fetchJson('https://api.thecatapi.com/v1/images/search', 20000);
+                if (!r?.[0]?.url) throw new Error('gagal');
+                return { type:'image', url:r[0].url };
               } },
           ],
           /* ═══════════ SEARCH ═══════════ */
@@ -1787,6 +1899,37 @@ Dashboard Elite v6.0 aktif dengan Glowing Themes. by Gilz.</pre>
                 const r = await fetchJson(`https://id.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(v.q)}`, 20000);
                 if (!r?.extract) throw new Error('artikel gak ketemu');
                 return { type:'text', title:(r.title||v.q), text:r.extract + (r.content_urls?.desktop?.page ? `\n\n${r.content_urls.desktop.page}` : '') };
+              } },
+            { id:'sr-cuaca', name:'Cek Cuaca', icon:'fa-cloud-sun', desc:'Cuaca real-time kota mana pun.', color:'emerald',
+              fields:[{k:'kota',label:'Nama kota',ph:'kendari'}],
+              run: async v => {
+                const g = await fetchJson(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(v.kota)}&count=1&language=id`, 20000);
+                const loc = g?.results?.[0];
+                if (!loc) throw new Error('kota gak ketemu');
+                const w = await fetchJson(`https://api.open-meteo.com/v1/forecast?latitude=${loc.latitude}&longitude=${loc.longitude}&current=temperature_2m,weather_code,relative_humidity_2m,wind_speed_10m`, 20000);
+                const c = w?.current;
+                if (!c) throw new Error('data cuaca gak ada');
+                const kode = { 0:'☀️ cerah', 1:'🌤️ sebagian cerah', 2:'⛅ berawan', 3:'☁️ mendung', 45:'🌫️ berkabut', 48:'🌫️ kabut beku', 51:'🌪 gerimis ringan', 53:'🌧 gerimis', 55:'🌧 gerimis lebat', 61:'🌧 hujan ringan', 63:'🌧 hujan', 65:'🌧 hujan lebat', 71:'🌨 salju ringan', 80:'🌦 hujan lokal', 81:'🌦 hujan', 82:'⛈ hujan sangat lebat', 95:'⛈ badai petir' };
+                const cuaca = kode[c.weather_code] || '🌤 ' + (c.weather_code ?? '-');
+                return { type:'text', title:'🌤 ' + (loc.name || v.kota), text:`📍 ${loc.name}${loc.admin1 ? ', ' + loc.admin1 : ''} ${loc.country_code ? '(' + loc.country_code + ')' : ''}\n${cuaca}\n🌡 ${c.temperature_2m}°C\n💧 kelembapan ${c.relative_humidity_2m}%\n💨 angin ${c.wind_speed_10m} km/j` };
+              } },
+            { id:'sr-pin', name:'Pinterest Image', icon:'fa-brands fa-pinterest', desc:'Cari gambar di Pinterest.', color:'emerald',
+              fields:[{k:'q',label:'Kata kunci',ph:'aesthetic wallpaper'}],
+              run: async v => {
+                const r = await fetchJson(`${NEX}/search/pinterest?q=${encodeURIComponent(v.q)}`, 45000);
+                const list = r?.result || r?.data || [];
+                if (!Array.isArray(list) || !list.length) throw new Error('gak ketemu');
+                const imgs = list.slice(0,6).map(x => ({ label:'', url: x.images_url || x.image || x.thumb || x.link })).filter(x => /^https?:/.test(x.url));
+                if (!imgs.length) throw new Error('gambar gak ketemu');
+                return { type:'image', multi: imgs };
+              } },
+            { id:'sr-resep', name:'Resep Masakan', icon:'fa-utensils', desc:'Cari resep masakan.', color:'emerald',
+              fields:[{k:'q',label:'Nama masakan',ph:'rendang'}],
+              run: async v => {
+                const r = await fetchJson(`${NEX}/search/resep?q=${encodeURIComponent(v.q)}`, 45000);
+                const list = r?.result || r?.data || [];
+                if (!Array.isArray(list) || !list.length) throw new Error('resep gak ketemu');
+                return { type:'text', title:'Resep: ' + v.q, text: list.slice(0,8).map((x,i)=>`${i+1}. ${x.judul||'-'}\n   ⏱ ${x.waktu_masak||'-'} · 🍽 ${x.hasil||'-'} · 📊 ${x.tingkat_kesulitan||'-'}\n   ${x.url||x.link||''}`).join('\n') };
               } },
             { id:'sr-ghrepo', name:'Cari Repo GitHub', icon:'fa-brands fa-github', desc:'Cari repository GitHub.', color:'emerald',
               fields:[{k:'q',label:'Kata kunci',ph:'whatsapp bot'}],
@@ -1830,12 +1973,9 @@ Dashboard Elite v6.0 aktif dengan Glowing Themes. by Gilz.</pre>
             { id:'sk-ttp', name:'TTP (Text to Picture)', icon:'fa-font', desc:'Teks jadi gambar sticker-style.', color:'violet',
               fields:[{k:'text',label:'Teks',ph:'halo ges'}],
               run: async v => ({ type:'image', url:`${NEX}/maker/ttp?text=${encodeURIComponent(v.text)}` }) },
-            { id:'sk-brat', name:'Brat Generator', icon:'fa-square', desc:'Teks white-on-black ala brat.', color:'violet',
-              fields:[{k:'text',label:'Teks',ph:'gw anak pinter',type:'textarea'}],
-              run: async v => {
-                const url = await makeBrat(v.text);
-                return { type:'image', url };
-              } },
+            { id:'sk-brat', name:'Brat Generator', icon:'fa-square', desc:'Teks ala album brat (persis plugin bot).', color:'violet',
+              fields:[{k:'text',label:'Teks',ph:'gw anak pinter',type:'textarea'},{k:'style',label:'Warna',type:'select',options:['green','white','black','pink','blue','red']}],
+              run: async v => ({ type:'image', url: await makeBrat(v.text, v.style) }) },
             { id:'sk-emoji', name:'Emoji HD PNG', icon:'fa-face-smile', desc:'Emoji jadi PNG HD (twemoji).', color:'violet',
               fields:[{k:'emoji',label:'Emoji',ph:'😎'}],
               run: async v => {
@@ -1877,10 +2017,65 @@ Dashboard Elite v6.0 aktif dengan Glowing Themes. by Gilz.</pre>
                 const words = t.trim() ? t.trim().split(/\s+/).length : 0;
                 return { type:'text', title:'Statistik', text:`📊 ${words} kata · ${t.length} karakter · ${t.replace(/\s/g,'').length} tanpa spasi · ${t.split('\n').length} baris` };
               } },
+            { id:'tl-case', name:'Case Converter', icon:'fa-font', desc:'UPPER/lower/Title/camelCase/snake/kebab.', color:'brand',
+              fields:[{k:'text',label:'Teks',ph:'halo dunia baruku'},{k:'mode',label:'Mode',type:'select',options:['UPPERCASE','lowercase','Title Case','CamelCase','snake_case','kebab-case','aLtErNaTiNg']}],
+              run: async v => {
+                const t = v.text || '';
+                const words = t.toLowerCase().split(/\s+/).filter(Boolean);
+                let out = '';
+                switch (v.mode) {
+                  case 'UPPERCASE': out = t.toUpperCase(); break;
+                  case 'lowercase': out = t.toLowerCase(); break;
+                  case 'Title Case': out = words.map(w => w[0].toUpperCase() + w.slice(1)).join(' '); break;
+                  case 'CamelCase': out = words.map((w,i) => i ? w[0].toUpperCase() + w.slice(1) : w).join(''); break;
+                  case 'snake_case': out = words.join('_'); break;
+                  case 'kebab-case': out = words.join('-'); break;
+                  case 'aLtErNaTiNg': out = [...t].map((c,i) => i % 2 ? c.toUpperCase() : c.toLowerCase()).join(''); break;
+                }
+                return { type:'copy', title:v.mode, text: out };
+              } },
+            { id:'tl-url', name:'URL Encoder/Decoder', icon:'fa-link', desc:'Encode/decode URL component.', color:'brand',
+              fields:[{k:'text',label:'Teks/URL',ph:'https://... atau teks %20',type:'textarea'},{k:'mode',label:'Mode',type:'select',options:['encode','decode']}],
+              run: async v => {
+                try { return { type:'copy', title:'Hasil', text: v.mode === 'encode' ? encodeURIComponent(v.text) : decodeURIComponent(v.text) }; }
+                catch (e) { throw new Error('format URL tidak valid'); }
+              } },
+            { id:'tl-b64', name:'Base64 Encode/Decode', icon:'fa-arrow-right-arrow-left', desc:'Konversi teks ke/dari Base64.', color:'brand',
+              fields:[{k:'text',label:'Teks',ph:'halo dunia',type:'textarea'},{k:'mode',label:'Mode',type:'select',options:['encode','decode']}],
+              run: async v => {
+                try {
+                  const out = v.mode === 'encode' ? btoa(unescape(encodeURIComponent(v.text))) : decodeURIComponent(escape(atob(v.text.trim())));
+                  return { type:'copy', title:'Hasil ' + v.mode, text: out };
+                } catch (e) { throw new Error('teks Base64 tidak valid'); }
+              } },
+            { id:'tl-pass', name:'Password Generator', icon:'fa-key', desc:'Bikin password kuat random.', color:'brand',
+              fields:[{k:'len',label:'Panjang (8-64)',ph:'16'},{k:'opt',label:'Karakter',type:'select',options:['semua (aA0!@)','huruf+angka','hurup kecil aja']}],
+              run: async v => {
+                const len = Math.min(64, Math.max(8, Number(v.len) || 16));
+                const sets = { 'semua (aA0!@)':'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*', 'huruf+angka':'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789', 'hurup kecil aja':'abcdefghijklmnopqrstuvwxyz' };
+                const chars = sets[v.opt] || sets['semua (aA0!@)'];
+                const arr = new Uint32Array(len); crypto.getRandomValues(arr);
+                return { type:'copy', title:'Password ' + len + ' karakter', text: [...arr].map(n => chars[n % chars.length]).join('') };
+              } },
           ],
         };
 
         /* ═══ helpers ═══ */
+        async function aiPollinations(prompt) {
+          try {
+            const res = await fetch('https://text.pollinations.ai/openai', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ model: 'openai', messages: [{ role: 'system', content: 'Kamu asisten web GILZ Premium Center. Jawab bahasa Indonesia santai, langsung ke inti.' }, { role: 'user', content: prompt }] }),
+              signal: AbortSignal.timeout(90000),
+            });
+            const data = await res.json();
+            const t = data?.choices?.[0]?.message?.content?.trim();
+            if (!t) throw new Error('balasan kosong');
+            return t;
+          } catch (e) { glog('error', 'pollinations: ' + e.message); throw new Error('AI gagal merespon: ' + e.message); }
+        }
+
         async function apiPick(url, pick) {
           const r = await fetchJson(url, 90000);
           const t = pick(r);
@@ -1928,29 +2123,95 @@ Dashboard Elite v6.0 aktif dengan Glowing Themes. by Gilz.</pre>
             return ch;
           }).join('');
         }
-        async function makeBrat(text) {
-          const c = document.createElement('canvas');
-          c.width = 768; c.height = 768;
-          const ctx = c.getContext('2d');
-          ctx.fillStyle = '#fff'; ctx.fillRect(0,0,c.width,c.height);
-          ctx.fillStyle = '#000';
-          ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-          const words = String(text||'').split(/\s+/);
-          let size = 90, lines = [];
-          for (; size >= 30; size -= 6) {
-            ctx.font = `bold ${size}px Arial, Helvetica, sans-serif`;
-            lines = []; let cur = '';
-            for (const w of words) {
-              const t = cur ? cur + ' ' + w : w;
-              if (ctx.measureText(t).width > c.width - 90 && cur) { lines.push(cur); cur = w; }
-              else cur = t;
+        /* brat — replika persis src/lib/ourin-brat.js + bratgreen.js:
+           bg #8ACE00 (atau pilihan), 512x512, teks hitam bold sans-serif,
+           word-wrap per kata (trailing space dibuang), emoji dihitung
+           fontSize*1.15 (tidak digambar), auto-shrink font 130→10 step 5 */
+        function bratTokenize(text) {
+            const emojiRe = /\p{Emoji_Presentation}|\p{Extended_Pictographic}/gu;
+            const raw = [];
+            let last = 0, m;
+            while ((m = emojiRe.exec(text)) !== null) {
+                if (m.index > last) raw.push({ type: 'text', value: text.slice(last, m.index) });
+                raw.push({ type: 'emoji', value: m[0] });
+                last = m.index + m[0].length;
             }
-            if (cur) lines.push(cur);
-            if (lines.length * size * 1.15 <= c.height - 90) break;
-          }
-          const startY = c.height/2 - (lines.length - 1) * size * 0.62;
-          lines.forEach((l, i) => ctx.fillText(l, c.width/2, startY + i * size * 1.18));
-          return c.toDataURL('image/png');
+            if (last < text.length) raw.push({ type: 'text', value: text.slice(last) });
+            const tokens = [];
+            for (const seg of raw) {
+                if (seg.type === 'emoji') { continue; }
+                else {
+                    seg.value.split(/\s+/).filter(Boolean).forEach(w => {
+                        if (tokens.length > 0) tokens.push({ type: 'space' });
+                        tokens.push({ type: 'text', value: w });
+                    });
+                }
+            }
+            return tokens;
+        }
+        function bratLines(ctx, tokens, fontSize, maxW) {
+            ctx.font = 'bold ' + fontSize + 'px sans-serif';
+            const width = (t) => t.type === 'space' ? ctx.measureText(' ').width : t.type === 'emoji' ? fontSize * 1.15 : ctx.measureText(t.value || '').width;
+            const lines = [];
+            let line = [], lineW = 0;
+            for (const token of tokens) {
+                const w = width(token);
+                if (token.type === 'space') { if (line.length) { line.push({ ...token, w }); lineW += w; } continue; }
+                if (line.length && lineW + w > maxW) {
+                    while (line.length && line[line.length - 1].type === 'space') { lineW -= line[line.length - 1].w; line.pop(); }
+                    lines.push({ items: line, width: lineW });
+                    line = [{ ...token, w }]; lineW = w;
+                } else { line.push({ ...token, w }); lineW += w; }
+            }
+            if (line.length) {
+                while (line.length && line[line.length - 1].type === 'space') { lineW -= line[line.length - 1].w; line.pop(); }
+                lines.push({ items: line, width: lineW });
+            }
+            return lines;
+        }
+        async function makeBrat(text, style) {
+            const themes = {
+                green:  { bg: '#8ACE00', fg: '#000000' },  /* default persis bratgreen */
+                white:  { bg: '#FFFFFF', fg: '#000000' },
+                black:  { bg: '#000000', fg: '#FFFFFF' },
+                og:     { bg: '#8ACE00', fg: '#000000' },
+                pink:   { bg: '#FFC0CB', fg: '#000000' },
+                blue:   { bg: '#00A8FF', fg: '#000000' },
+                red:    { bg: '#FF3B30', fg: '#FFFFFF' },
+            };
+            const th = themes[style] || themes.green;
+            const W = 512, H = 512, maxW = 450, maxH = 450;
+            const c = document.createElement('canvas');
+            c.width = W; c.height = H;
+            const ctx = c.getContext('2d');
+            ctx.fillStyle = th.bg; ctx.fillRect(0, 0, W, H);
+            const tokens = bratTokenize(String(text || ''));
+            let fontSize = 130;
+            let lines = bratLines(ctx, tokens, fontSize, maxW);
+            while (fontSize > 10) {
+                lines = bratLines(ctx, tokens, fontSize, maxW);
+                if (lines.length * fontSize * 1.1 <= maxH) break;
+                fontSize -= 5;
+            }
+            const lineHeight = fontSize * 1.1;
+            const totalH = lines.length * lineHeight;
+            ctx.save();
+            ctx.translate(256, 256);
+            ctx.fillStyle = th.fg;
+            ctx.textBaseline = 'middle';
+            let startY = -(totalH / 2) + (lineHeight / 2);
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i];
+                const y = startY + i * lineHeight;
+                ctx.font = 'bold ' + fontSize + 'px sans-serif';
+                let x = -line.width / 2;
+                for (const token of line.items) {
+                    if (token.type === 'text') { ctx.fillText(token.value, x, y); x += token.w; }
+                    else x += token.w;
+                }
+            }
+            ctx.restore();
+            return c.toDataURL('image/png');
         }
 
         /* ═══ renderer ═══ */
@@ -2025,7 +2286,8 @@ Dashboard Elite v6.0 aktif dengan Glowing Themes. by Gilz.</pre>
             outputBox.innerText = formatResponse(f.name.toUpperCase(), '✅', `┌─── ✅ *SELESAI* ───\n├─ 🎯 ${f.name}\n╰━━━━━━━━━━━━━━━━━━━━━━━━━━━╯`);
             renderFeatResult(result, out);
           } catch (err) {
-            outputBox.innerText = formatResponse(f.name.toUpperCase(), '❌', `┌─── ⚠️ GAGAL ───\n├─ ${err.message}\n╰━━━━━━━━━━━━━━━━━━━━━━━━━━━╯`);
+            glog('error', `${f.id}: ${err.message}`);
+            outputBox.innerText = formatResponse(f.name.toUpperCase(), '❌', `┌─── ⚠️ GAGAL ───\n├─ ${err.message}\n╰━━━━━━━━━━━━━━━━━━━━━━━━━━━╯\n🧾 error tersimpan di Log (tombol kiri bawah)`);
           } finally {
             if (btn) { btn.disabled = false; btn.style.opacity = 1; btn.textContent = '⚡ Jalankan'; }
           }
