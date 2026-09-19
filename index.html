@@ -290,6 +290,10 @@
                                 <span class="w-7 h-7 rounded-xl bg-brand-primary/20 flex items-center justify-center text-brand-primary shrink-0"><i class="fa-solid fa-bolt text-xs"></i></span>
                                 <div class="truncate"><p class="font-bold">1. AmFree Premium</p><p class="text-[10px] text-slate-500">Magic Link Automation</p></div>
                             </button>
+                            <button onclick="switchCategory('botctl'); toggleDropdown('category-dropdown');" class="w-full flex items-center space-x-3 px-3.5 py-2.5 text-xs font-semibold text-slate-300 hover:bg-brand-primary/20 hover:text-white rounded-2xl transition-all text-left">
+                                <span class="w-7 h-7 rounded-xl bg-lime-500/20 flex items-center justify-center text-lime-400 shrink-0"><i class="fa-solid fa-server text-xs"></i></span>
+                                <div class="truncate"><p class="font-bold text-lime-300">Bot Control</p><p class="text-[10px] text-slate-500">Log Live + Remote + RCH</p></div>
+                            </button>
                             <button onclick="switchCategory('ai'); toggleDropdown('category-dropdown');" class="w-full flex items-center space-x-3 px-3.5 py-2.5 text-xs font-semibold text-slate-300 hover:bg-brand-primary/20 hover:text-white rounded-2xl transition-all text-left">
                                 <span class="w-7 h-7 rounded-xl bg-cyan-500/20 flex items-center justify-center text-cyan-400 shrink-0"><i class="fa-solid fa-robot text-xs"></i></span>
                                 <div class="truncate"><p class="font-bold text-cyan-300">AI Center</p><p class="text-[10px] text-slate-500">GPT, SimSimi, Text→Image</p></div>
@@ -1232,6 +1236,7 @@ Dashboard Elite v6.0 aktif dengan Glowing Themes. by Gilz.</pre>
                 'tiktok-pro': { title: 'TikTok Downloader Pro', desc: 'Unduh video, foto slide, dan audio TikTok tanpa watermark.', icon: 'fa-brands fa-tiktok' },
                 'primbon': { title: 'Primbon & Ramalan', desc: 'Arti nama, kecocokan pasangan, nomor hoki, dan ramalan jodoh.', icon: 'fa-star-and-crescent' },
                 'music': { title: 'Music Player', desc: 'Cari lagu, dengarkan preview, dan putar MP3 full langsung di web.', icon: 'fa-music' },
+                'botctl': { title: 'Bot Control', desc: 'Remote bot WA: log live, status, kirim perintah owner, react channel. Butuh ★webbridge on di bot.', icon: 'fa-server' },
                 'ai': { title: 'AI Center', desc: 'Chat AI, solver matematika, paraphrase, dan generator gambar.', icon: 'fa-robot' },
                 'canvas': { title: 'Canvas Maker', desc: 'Bikin kartu keren: music card, profile IG, fake saldo, dan lainnya.', icon: 'fa-palette' },
                 'download': { title: 'All Downloader', desc: 'YouTube MP3, TikTok no WM, IG, FB, Pinterest, Spotify, Alight Motion.', icon: 'fa-download' },
@@ -1751,6 +1756,43 @@ Dashboard Elite v6.0 aktif dengan Glowing Themes. by Gilz.</pre>
         const SIP = 'https://api.siputzx.my.id/api/primbon';
         const AZB = 'https://api.azbry.com/api/download';
 
+        /* ═══ WEBBRIDGE client ═══ */
+        function wbUrl() { return (localStorage.getItem('wb_url') || '').replace(/\/$/, ''); }
+        function wbToken() { return localStorage.getItem('wb_token') || ''; }
+        function wbErr(r) { return r?.error || 'gak nyambung ke bot — jalankan ★webbridge on + tunnel, lalu Hubungkan'; }
+        async function wbFetch(path, opts = {}) {
+          const base = wbUrl();
+          if (!base) throw new Error('belum hubungkan bot — buka fitur "Hubungkan ke Bot"');
+          const res = await fetch(base + path, {
+            ...opts,
+            headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + wbToken(), ...(opts.headers || {}) },
+            signal: AbortSignal.timeout(30000),
+          });
+          return await res.json().catch(() => ({ ok: false, error: 'respon gak valid (tunnel mati?)' }));
+        }
+        let wbLogSrc = null;
+        window.wbOpenLog = function() {
+          const host = document.getElementById('gilz-log-live');
+          if (!host) return;
+          if (wbLogSrc) { wbLogSrc.close(); wbLogSrc = null; }
+          if (!wbUrl()) { host.innerHTML = '<p class="text-xs text-rose-400">belum connect — hubungkan dulu</p>'; return; }
+          host.innerHTML = '<pre id="wb-log-pre" class="text-[10px] font-mono text-lime-300 whitespace-pre-wrap bg-black/70 rounded-2xl p-3 max-h-96 overflow-y-auto custom-scrollbar leading-relaxed">⏳ nyambung ke bot...\n</pre>';
+          const pre = document.getElementById('wb-log-pre');
+          try {
+            wbLogSrc = new EventSource(wbUrl() + '/log/stream');
+            wbLogSrc.onopen = () => { pre.textContent += '✅ connected — nunggu log...\n'; };
+            wbLogSrc.onmessage = (ev) => {
+              try {
+                const lines = JSON.parse(ev.data);
+                for (const l of lines) { pre.textContent += l + '\n'; }
+                pre.scrollTop = pre.scrollHeight;
+                if (pre.textContent.length > 60000) pre.textContent = pre.textContent.slice(-30000);
+              } catch {}
+            };
+            wbLogSrc.onerror = () => { pre.textContent += '⚠️ koneksi putus — cek tunnel\n'; };
+          } catch (e) { host.innerHTML = '<p class="text-xs text-rose-400">error: ' + e.message + '</p>'; }
+        };
+
         /* ═══ BRAT TEMPLATES (persis plugins/sticker/bratextra.js) ═══ */
         const BRAT_TEMPLATES = {
           bratanime:    { url: "https://raw.githubusercontent.com/kayzzaoshi-code/Uploader/main/file_1772989415819.jpeg", areaX: 170, areaW: 460, areaCY: 530, areaMaxH: 210, fontSize: 72, minFontSize: 20 },
@@ -1887,6 +1929,49 @@ Dashboard Elite v6.0 aktif dengan Glowing Themes. by Gilz.</pre>
         }
 
         const FEATURES = {
+          /* ═══════════ BOT CONTROL (webbridge) ═══════════ */
+          botctl: [
+            { id:'bc-connect', name:'Hubungkan ke Bot', icon:'fa-plug', desc:'Paste URL tunnel + token (dari ★webbridge on).', color:'lime',
+              fields:[{k:'url',label:'URL tunnel',ph:'https://xxx.trycloudflare.com'},{k:'token',label:'Token webbridge',ph:'abcdef123...'}],
+              run: async v => {
+                localStorage.setItem('wb_url', v.url.replace(/\/$/, ''));
+                localStorage.setItem('wb_token', v.token);
+                const r = await wbFetch('/ping');
+                if (!r?.ok) throw new Error('gak nyambung — cek URL/tunnel');
+                return { type:'text', title:'✅ Terhubung', text:`Bot: ${r.name}\n\nSekarang fitur Log Live, Status, Remote, dan RCH bisa dipakai. Tersimpan di browser ini.` };
+              } },
+            { id:'bc-log', name:'Log Live (Panel Ptero)', icon:'fa-terminal', desc:'Console log bot realtime, kayak pterodactyl.', color:'lime', noFields:true,
+              run: async () => {
+                setTimeout(() => wbOpenLog(), 100);
+                return { type:'text', title:'Console', text:'Panel log dibuka di bawah — live streaming dari bot.' };
+              } },
+            { id:'bc-status', name:'Status Bot', icon:'fa-gauge-high', desc:'Nama, mode, uptime, memori.', color:'lime', noFields:true,
+              run: async () => {
+                const r = await wbFetch('/status');
+                if (!r?.ok) throw new Error(wbErr(r));
+                const up = r.uptime ? Math.floor(r.uptime / 3600) + 'j ' + Math.floor((r.uptime % 3600) / 60) + 'm' : '-';
+                return { type:'text', title:'🤖 ' + r.bot.name, text:
+                  `📛 Nama: ${r.bot.name}\n⚡ Prefix: ${r.bot.prefix}\n📖 Reply: ${r.bot.replyType} · Menu: ${r.bot.menuType}\n` +
+                  `👁 Autoread: ${r.bot.modes.autoread ? 'ON' : 'off'} · 😂 Autoreact: ${r.bot.modes.autoreact ? 'ON' : 'off'} · 🤫 Self: ${r.bot.modes.self ? 'ON' : 'off'}\n` +
+                  `⏱ Uptime: ${up} · 🧠 Memori: ${r.memoryMB} MB · 🟩 Node ${r.node}` };
+              } },
+            { id:'bc-cmd', name:'Kirim Perintah Owner', icon:'fa-terminal', desc:'Contoh: setname BOT BARU, setmenu v9, autoread on, restart.', color:'lime',
+              fields:[{k:'cmd',label:'Perintah (tanpa prefix)',ph:'setname BOT BARU',type:'textarea'}],
+              run: async v => {
+                const r = await wbFetch('/set', { method:'POST', body: JSON.stringify({ cmd: v.cmd }) });
+                if (!r?.ok) throw new Error(wbErr(r));
+                return { type:'text', title:'📤 Terkirim ke bot', text:`Perintah: ${v.cmd}\n\nBot bakal ngerjain di chat owner — cek Log Live buat liat hasilnya.` };
+              } },
+            { id:'bc-rch', name:'React Channel (RCH)', icon:'fa-heart', desc:'Kirim reaksi emoji ke post channel WA.', color:'lime',
+              fields:[{k:'url',label:'Link post channel',ph:'https://whatsapp.com/channel/xxx/123'},{k:'emoji',label:'Emoji (bisa banyak)',ph:'🥳,🙄'}],
+              run: async v => {
+                const ems = [...new Intl.Segmenter(undefined, { granularity: 'grapheme' }).segment(v.emoji.replace(/,/g, ' '))].map(s => s.segment).filter(s => s.trim());
+                const r = await wbFetch('/rch', { method:'POST', body: JSON.stringify({ url: v.url, reactions: ems }) });
+                if (!r?.ok) throw new Error(wbErr(r));
+                return { type:'text', title:'✅ Reaksi terkirim', text:`${ems.join(' ')} → ${v.url}\n\n${JSON.stringify(r.result || {}).slice(0, 300)}` };
+              } },
+          ],
+
           /* ═══════════ AI ═══════════ */
           ai: [
             { id:'ai-chat', name:'AI Chat (Andal)', icon:'fa-robot', desc:'Chat AI paling stabil — tanya apa aja.', color:'cyan',
@@ -1940,10 +2025,10 @@ Dashboard Elite v6.0 aktif dengan Glowing Themes. by Gilz.</pre>
               run: async v => ({ type:'image', url:`https://api.kyzznekoo.my.id/api/img/v2/fakeff?username=${encodeURIComponent(v.username)}&level=${encodeURIComponent(v.level)}&rank=${encodeURIComponent(v.rank)}&trophies=${encodeURIComponent(v.trophies)}` }) },
             { id:'cv-quote', name:'Quotes Maker', icon:'fa-quote-right', desc:'Bikin kartu quotes aesthetic.', color:'pink',
               fields:[{k:'text',label:'Isi quotes',ph:'jangan menyerah sebelum berakhir',type:'textarea'},{k:'nama',label:'Nama (opsional)',ph:'Budi'},{k:'tema',label:'Tema',type:'select',options:['gelap','hijau','ungu','merah']}],
-              run: async v => ({ type:'image', url: await makeQuoteCard(v.text, v.nama, v.tema) }) },
+              run: async v => ({ type:'image-dom', url: await makeQuoteCard(v.text, v.nama, v.tema) }) },
             { id:'cv-fakewa', name:'Fake Chat WhatsApp', icon:'fa-whatsapp', desc:'Bikin mock chat WA (buat bercanda).', color:'pink',
               fields:[{k:'nama',label:'Nama kontak',ph:'Ibu Kos'},{k:'pesan',label:'Isi pesan',ph:'bayar kos sek sekarang',type:'textarea'},{k:'reply',label:'Balasan (opsional)',ph:'oke bu, sabar ya'},{k:'jam',label:'Jam',ph:'22:30'},{k:'posisi',label:'Posisi bubble',type:'select',options:['kanan (kamu)','kiri (dia)']}],
-              run: async v => ({ type:'image', url: await makeFakeChat(v.nama, v.pesan, v.reply, v.jam, v.posisi.includes('kanan') ? 'kanan' : 'kiri') }) },
+              run: async v => ({ type:'image-dom', url: await makeFakeChat(v.nama, v.pesan, v.reply, v.jam, v.posisi.includes('kanan') ? 'kanan' : 'kiri') }) },
             { id:'cv-caption', name:'Caption Foto', icon:'fa-closed-captioning', desc:'Beri teks besar di foto (atas/bawah).', color:'pink',
               fields:[{k:'url',label:'URL foto',ph:'https://i.pravatar.cc/600'},{k:'teks',label:'Teks',ph:'kenapa lu liat foto aku'},{k:'posisi',label:'Posisi',type:'select',options:['atas','tengah','bawah']}],
               run: async v => {
@@ -1973,7 +2058,7 @@ Dashboard Elite v6.0 aktif dengan Glowing Themes. by Gilz.</pre>
                   ctx.fillStyle = '#fff';
                   ctx.fillText(l.toUpperCase(), W/2, ly);
                 });
-                return { type:'image', url: c.toDataURL('image/png') };
+                return { type:'image-dom', url: canvasToUrl(c) };
               } },
             { id:'cv-wasted', name:'WASTED (GTA)', icon:'fa-skull', desc:'Foto jadi meme GTA "WASTED".', color:'pink',
               fields:[{k:'url',label:'URL foto',ph:'https://i.pravatar.cc/500'},{k:'teks',label:'Teks',ph:'WASTED'}],
@@ -1996,7 +2081,7 @@ Dashboard Elite v6.0 aktif dengan Glowing Themes. by Gilz.</pre>
                 ctx.font = 'bold ' + Math.floor(W/8) + 'px serif';
                 ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
                 ctx.fillText(String(v.teks || 'WASTED').toUpperCase(), W/2, H/2);
-                return { type:'image', url: c.toDataURL('image/png') };
+                return { type:'image-dom', url: canvasToUrl(c) };
               } },
             { id:'cv-balogo', name:'BA Logo', icon:'fa-font', desc:'Teks gaya logo BA.', color:'pink',
               fields:[{k:'text',label:'Teks',ph:'GILZ'}],
@@ -2248,7 +2333,7 @@ Dashboard Elite v6.0 aktif dengan Glowing Themes. by Gilz.</pre>
               run: async v => ({ type:'image', url:`${NEX}/maker/attp?text=${encodeURIComponent(v.text)}` }) },
             { id:'sk-brat', name:'Brat Generator', icon:'fa-square', desc:'Teks ala album brat (persis plugin bot).', color:'violet',
               fields:[{k:'text',label:'Teks',ph:'gw anak pinter',type:'textarea'},{k:'style',label:'Warna',type:'select',options:['green','white','black','pink','blue','red']}],
-              run: async v => ({ type:'image', url: await makeBrat(v.text, v.style) }) },
+              run: async v => ({ type:'image-dom', url: await makeBrat(v.text, v.style) }) },
             { id:'sk-bratvid', name:'Brat Video (scroll)', icon:'fa-film', desc:'Video brat teks scroll naik (webm).', color:'violet', slow:true,
               fields:[{k:'text',label:'Teks',ph:'gw anak ganteng nggak sombong',type:'textarea'}],
               run: async v => ({ type:'video', url: await makeBratVideo(v.text, 'v1'), filename:'bratvid.webm' }) },
@@ -2258,7 +2343,7 @@ Dashboard Elite v6.0 aktif dengan Glowing Themes. by Gilz.</pre>
             ...Object.entries(BRAT_TEMPLATES).map(([key, tpl]) => ({
               id:'sk-'+key, name:'Brat '+key.replace('brat','').replace(/^./, c=>c.toUpperCase()), icon:'fa-image', desc:'Brat custom template.', color:'violet',
               fields:[{k:'text',label:'Teks',ph:'halo ges'}],
-              run: async v => ({ type:'image', url: await makeBratTemplate(v.text, key) }) })),
+              run: async v => ({ type:'image-dom', url: await makeBratTemplate(v.text, key) }) })),
           ],
           /* ═══════════ TOOLS & CONVERTER ═══════════ */
           tools: [
@@ -2366,6 +2451,72 @@ Dashboard Elite v6.0 aktif dengan Glowing Themes. by Gilz.</pre>
                     return { type:'copy', title:'Teks', text: t };
                   }
                 } catch (e) { throw new Error('format biner tidak valid (harus 8-bit per kelompok)'); }
+              } },
+            { id:'tl-bmi', name:'BMI Kalkulator', icon:'fa-weight-scale', desc:'Body mass index + kategori.', color:'brand',
+              fields:[{k:'bb',label:'Berat badan (kg)',ph:'60'},{k:'tb',label:'Tinggi (cm)',ph:'165'}],
+              run: async v => {
+                const bb = Number(v.bb), tb = Number(v.tb) / 100;
+                if (!bb || !tb) throw new Error('isi berat & tinggi');
+                const bmi = bb / (tb * tb);
+                const kat = bmi < 18.5 ? 'kurus' : bmi < 25 ? 'ideal ✅' : bmi < 30 ? 'gemuk' : 'obesitas';
+                const ideal = (tb * tb * 22).toFixed(1);
+                return { type:'text', title:'BMI: ' + bmi.toFixed(1), text:`BMI kamu: ${bmi.toFixed(1)} — ${kat}\nBerat ideal: ${ideal} kg\nTinggi: ${(tb*100).toFixed(0)} cm · Berat: ${bb} kg` };
+              } },
+            { id:'tl-zakat', name:'Hitung Zakat', icon:'fa-mosque', desc:'Zakat penghasilan & maal (2.5%).', color:'brand',
+              fields:[{k:'harta',label:'Total harta (Rp)',ph:'100000000'},{k:'utang',label:'Utang (Rp, opsional)',ph:'0'},{k:'nisab',label:'Nisab (Rp)',ph:'98500000'}],
+              run: async v => {
+                const bersih = (Number(v.harta)||0) - (Number(v.utang)||0);
+                const nisab = Number(v.nisab) || 98500000;
+                const rp = (n) => 'Rp ' + n.toLocaleString('id-ID');
+                return { type:'text', title:'Zakat', text:`Harta bersih: ${rp(bersih)}\nNisab: ${rp(nisab)}\n${bersih >= nisab ? 'WAJIB zakat!\nZakat (2.5%): ' + rp(Math.round(bersih * 0.025)) : 'Belum wajib zakat (di bawah nisab)'}` };
+              } },
+            { id:'tl-diskon', name:'Diskon & PPN', icon:'fa-tags', desc:'Hitung diskon + PPN + harga akhir.', color:'brand',
+              fields:[{k:'harga',label:'Harga (Rp)',ph:'150000'},{k:'diskon',label:'Diskon (%)',ph:'20'},{k:'ppn',label:'PPN (%)',ph:'0'}],
+              run: async v => {
+                const h = Number(v.harga)||0, d = Number(v.diskon)||0, p = Number(v.ppn)||0;
+                const potong = h*d/100, setelah = h-potong, pajak = setelah*p/100;
+                const rp = (n) => 'Rp ' + Math.round(n).toLocaleString('id-ID');
+                return { type:'text', title:'Kalkulasi', text:`Harga: ${rp(h)}\nDiskon ${d}%: -${rp(potong)}\nPPN ${p}%: +${rp(pajak)}\nBayar: ${rp(setelah+pajak)} (hemat ${rp(potong-pajak)})` };
+              } },
+            { id:'tl-suhu', name:'Konversi Suhu', icon:'fa-temperature-half', desc:'C ↔ F ↔ K sekaligus.', color:'brand',
+              fields:[{k:'val',label:'Nilai',ph:'36.6'},{k:'dari',label:'Dari',type:'select',options:['celsius','fahrenheit','kelvin']}],
+              run: async v => {
+                const n = Number(v.val);
+                if (!Number.isFinite(n)) throw new Error('angka gak valid');
+                let c = n;
+                if (v.dari === 'fahrenheit') c = (n-32)*5/9;
+                if (v.dari === 'kelvin') c = n-273.15;
+                return { type:'copy', title:'Konversi suhu', text: `${c.toFixed(2)}°C = ${(c*9/5+32).toFixed(2)}°F = ${(c+273.15).toFixed(2)}K` };
+              } },
+            { id:'tl-pick', name:'Random Picker', icon:'fa-dice-five', desc:'Pilih random dari daftar (koma).', color:'brand',
+              fields:[{k:'list',label:'Daftar (pisah koma)',ph:'bakso, mie ayam, nasi goreng',type:'textarea'}],
+              run: async v => {
+                const items = v.list.split(',').map(s=>s.trim()).filter(Boolean);
+                if (items.length < 2) throw new Error('minimal 2 pilihan');
+                return { type:'text', title:'Hasil', text:`Dari ${items.length} pilihan, kena: ${items[Math.floor(Math.random()*items.length)]}` };
+              } },
+            { id:'tl-weton', name:'Cek Weton Jawa', icon:'fa-calendar-days', desc:'Pasaran + neptu dari tanggal.', color:'brand',
+              fields:[{k:'tgl',label:'Tanggal (DD-MM-YYYY)',ph:'17-08-2008'}],
+              run: async v => {
+                const m = String(v.tgl||'').match(/^(\d{1,2})-(\d{1,2})-(\d{4})$/);
+                if (!m) throw new Error('format DD-MM-YYYY');
+                const d = new Date(Number(m[3]), Number(m[2])-1, Number(m[1]));
+                if (isNaN(d)) throw new Error('tanggal gak valid');
+                const hari = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+                const pasaran = ['Legi','Pahing','Pon','Wage','Kliwon'];
+                const neptuHari = [5,4,3,7,8,6,9];
+                const neptuPasaran = [5,7,4,3,8];
+                const epoch = new Date(1900,0,1);
+                const diff = Math.floor((d-epoch)/86400000);
+                const ps = ((diff%5)+5)%5;
+                const total = neptuHari[d.getDay()]+neptuPasaran[ps];
+                return { type:'text', title: hari[d.getDay()]+' '+pasaran[ps], text:`Pasaran: ${pasaran[ps]} (neptu ${neptuPasaran[ps]})\nHari: ${hari[d.getDay()]} (neptu ${neptuHari[d.getDay()]})\nTotal neptu: ${total}` };
+              } },
+            { id:'tl-timer', name:'Timer / Countdown', icon:'fa-stopwatch', desc:'Timer + alarm beep di web.', color:'brand',
+              fields:[{k:'menit',label:'Menit',ph:'5'},{k:'label',label:'Label',ph:'masak mie'}],
+              run: async v => {
+                const menit = Math.min(180, Math.max(0.1, Number(v.menit)||5));
+                return { type:'timer', total: Math.round(menit*60), label: v.label || 'timer' };
               } },
             { id:'tl-case', name:'Case Converter', icon:'fa-font', desc:'UPPER/lower/Title/camelCase/snake/kebab.', color:'brand',
               fields:[{k:'text',label:'Teks',ph:'halo dunia baruku'},{k:'mode',label:'Mode',type:'select',options:['UPPERCASE','lowercase','Title Case','CamelCase','snake_case','kebab-case','aLtErNaTiNg']}],
@@ -2676,6 +2827,12 @@ Dashboard Elite v6.0 aktif dengan Glowing Themes. by Gilz.</pre>
           const wrap = document.getElementById('content-' + cat);
           if (!wrap || wrap.dataset.rendered) return;
           wrap.dataset.rendered = '1';
+          if (cat === 'botctl') {
+            const panel = document.createElement('div');
+            panel.className = 'bg-dark-950/90 border border-lime-500/25 rounded-3xl p-4 mb-4';
+            panel.innerHTML = '<div class="flex items-center justify-between mb-2"><p class="text-[10px] font-black uppercase tracking-widest text-lime-300">🖥️ Console Bot (live)</p><button onclick="wbOpenLog()" class="text-[10px] font-bold bg-lime-500/15 text-lime-300 border border-lime-500/30 px-3 py-1.5 rounded-lg">↻ Reconnect</button></div><div id="gilz-log-live"><pre class="text-[10px] font-mono text-slate-500 whitespace-pre-wrap bg-black/50 rounded-2xl p-3 max-h-72 overflow-y-auto">belum connect — jalankan "Hubungkan ke Bot" lalu buka "Log Live"</pre></div>';
+            wrap.insertBefore(panel, wrap.firstChild);
+          }
           wrap.innerHTML = `<div class="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">${FEATURES[cat].map(f => `
             <div class="bg-dark-950/90 border border-white/10 rounded-2xl p-4 hover:border-brand-primary/50 transition-all" id="feat-${f.id}">
               <div class="flex items-start gap-3">
@@ -3046,7 +3203,25 @@ Dashboard Elite v6.0 aktif dengan Glowing Themes. by Gilz.</pre>
           } else if (out.type === 'music-player') {
             html = '';
             setTimeout(() => muPlay(out.track, { auto: true }), 50);
-          } else if (out.type === 'video') {          } else if (out.type === 'video') {
+          } else if (out.type === 'timer') {
+            html = '';
+            setTimeout(() => {
+              let s = out.total;
+              const tickT = setInterval(() => {
+                const mm = String(Math.floor(s / 60)).padStart(2, '0');
+                const ss = String(s % 60).padStart(2, '0');
+                result.innerHTML = `<div class="text-center py-4"><p class="text-4xl font-black text-white font-mono">${mm}:${ss}</p><p class="text-[10px] text-slate-500 mt-1">${(out.label||'').replace(/</g,'&lt;')}</p></div>`;
+                if (s <= 0) {
+                  clearInterval(tickT);
+                  result.innerHTML += '<p class="text-center text-emerald-300 font-black text-sm py-2">⏰ WAKTU HABIS!</p>';
+                  try { const ctx2 = new (window.AudioContext || window.webkitAudioContext)(); const o = ctx2.createOscillator(); const g = ctx2.createGain(); o.connect(g); g.connect(ctx2.destination); o.frequency.value = 880; g.gain.value = .3; o.start(); setTimeout(() => { o.stop(); ctx2.close(); }, 2600); } catch (e) {}
+                }
+                s--;
+              }, 1000);
+            }, 50);
+          } else if (out.type === 'image-dom') {
+            html = '__IMAGE_DOM__';
+          } else if (out.type === 'video') {
             html = `<video src="${out.url}" controls autoplay loop class="w-full max-h-80 rounded-2xl border border-white/10 bg-black"></video><a href="${out.url}" download="${out.filename || 'video.webm'}" class="block mt-2 w-full bg-white/10 hover:bg-white/20 border border-white/15 text-white font-bold py-2.5 rounded-xl text-center text-[11px]">⬇️ Simpan Video</a>`;
           } else if (out.type === 'audio') {
             html = `<audio src="${out.url}" controls class="w-full"></audio><p class="text-[10px] text-slate-500 mt-1 text-center">${(out.title||'')}</p>`;
@@ -3062,7 +3237,33 @@ Dashboard Elite v6.0 aktif dengan Glowing Themes. by Gilz.</pre>
           } else {
             html = `<p class="text-[11px] text-brand-primary font-black uppercase tracking-wider mb-1.5">${(out.title||'Hasil').replace(/</g,'&lt;')}</p><pre class="text-[11px] text-slate-300 whitespace-pre-wrap font-sans">${String(out.text).replace(/</g,'&lt;')}</pre>`;
           }
-          result.innerHTML = html;
+          if (html === '__IMAGE_DOM__') {
+            result.innerHTML = '';
+            const imgs = out.multi || [{ label: '', url: out.url }];
+            imgs.forEach((x) => {
+              const wrap = document.createElement('div');
+              wrap.className = 'text-center';
+              const img = document.createElement('img');
+              img.className = 'max-h-80 mx-auto rounded-2xl border border-white/10';
+              img.alt = 'hasil';
+              const anchor = document.createElement('a');
+              anchor.href = x.url;
+              anchor.target = '_blank';
+              anchor.rel = 'noopener';
+              anchor.className = 'inline-block mt-2 bg-white/10 hover:bg-white/20 border border-white/15 text-white font-bold py-2 px-5 rounded-xl text-[11px]';
+              anchor.textContent = '⬇️ Unduh Gambar';
+              img.onload = () => {
+                wrap.appendChild(img);
+                if (x.label) { const p = document.createElement('p'); p.className = 'text-[10px] text-slate-500 mt-1'; p.textContent = x.label; wrap.appendChild(p); }
+                wrap.appendChild(anchor);
+              };
+              img.onerror = () => { const p = document.createElement('p'); p.className = 'text-xs text-rose-400 py-6'; p.textContent = '⚠️ gambar gagal dimuat, coba lagi'; wrap.appendChild(p); };
+              img.src = x.url;
+              result.appendChild(wrap);
+            });
+          } else {
+            result.innerHTML = html;
+          }
           result.classList.remove('hidden');
           result._copyText = out.type === 'copy' ? out.text : null;
         }
@@ -3095,5 +3296,5 @@ Dashboard Elite v6.0 aktif dengan Glowing Themes. by Gilz.</pre>
             } catch {}
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a3d63e3e582e6d3b',t:'MTc4OTc5NjI5NQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</body>
 </html>
