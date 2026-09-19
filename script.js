@@ -8,6 +8,22 @@
    5. (opsional) poll lagi → email login dari aplikasi AM
    ═══════════════════════════════════════════════════════════ */
 
+/* ═══════════════════════════════════════════════════════════════
+   ⚙️ KONFIGURASI GOOGLE LOGIN
+   Isi dengan OAuth Client ID dari Google Cloud Console.
+   Cara (sekali, ±5 menit):
+   1. Buka console.cloud.google.com → buat project (apa aja namanya)
+   2. APIs & Services → OAuth consent screen → External → isi nama app
+      & support email → tambahkan test user kalau perlu
+   3. APIs & Services → Credentials → Create Credentials → OAuth Client ID
+      → Web application
+   4. Authorized JavaScript origins → tambah:  https://gilzalightmotion.my.id
+      (dan http://localhost kalau mau tes lokal)
+   5. Copy Client ID-nya → tempel di bawah ini.
+   Selama kosong, tombol login otomatis pakai mode input email manual.
+   ═══════════════════════════════════════════════════════════════ */
+window.GILZ_GOOGLE_CLIENT_ID = '' /* contoh: '1234567890-xxxx.apps.googleusercontent.com' */
+
 const API = {
   tmpmail: 'https://api.kyzznekoo.my.id/api/tools/tmpmail/v2',
   amSend: 'https://v2.api-varhad.my.id/tools/amprem/verif/email',

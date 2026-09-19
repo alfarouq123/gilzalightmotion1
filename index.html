@@ -110,11 +110,7 @@
 <body class="bg-dark-950 text-slate-100 min-h-screen font-sans selection:bg-brand-primary selection:text-white relative overflow-x-hidden w-full theme-neon-laser">
 
     <!-- Hidden Google Official One-Tap Element -->
-    <div id="g_id_onload"
-         data-client_id="YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com"
-         data-callback="handleCredentialResponse"
-         data-auto_prompt="false">
-    </div>
+    <div id="g_id_onload" data-auto_prompt="false"></div>
 
     <!-- LOGIN MODAL (Disesuaikan dengan UI/UX login.html) -->
     <div id="login-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-dark-950/95 backdrop-blur-3xl px-4 transition-all duration-700">
@@ -136,7 +132,8 @@
             </div>
 
             <!-- Google Login Button -->
-            <button onclick="triggerGoogleAccountSelect()" class="w-full bg-white/10 hover:bg-white/20 border border-white/20 text-white font-semibold py-3 px-4 rounded-xl text-xs transition-all flex items-center justify-center gap-3 mb-5 hover:-translate-y-0.5 shadow-md">
+            <div id="google-btn-real" class="w-full flex justify-center mb-3 hidden"></div>
+            <button onclick="triggerGoogleAccountSelect()" id="btn-google-fallback" class="w-full bg-white/10 hover:bg-white/20 border border-white/20 text-white font-semibold py-3 px-4 rounded-xl text-xs transition-all flex items-center justify-center gap-3 mb-5 hover:-translate-y-0.5 shadow-md">
                 <svg class="w-4 h-4" viewBox="0 0 24 24">
                     <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
                     <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
@@ -440,7 +437,7 @@
                     </div>
 
                     <!-- Action Tabs -->
-                    <div id="amprem-tabs" class="grid grid-cols-2 sm:grid-cols-5 gap-2 mb-8 bg-dark-950/80 p-2 rounded-2xl border border-white/10">
+                    <div id="amprem-tabs" class="grid grid-cols-2 sm:grid-cols-6 gap-2 mb-8 bg-dark-950/80 p-2 rounded-2xl border border-white/10">
                         <button onclick="switchTab('send')" id="btn-send" class="tab-btn px-3 py-3 rounded-xl text-xs font-bold transition-all bg-gradient-to-r from-brand-primary to-brand-secondary text-white shadow-lg shadow-brand-primary/40 flex items-center justify-center space-x-2 truncate">
                             <i class="fa-solid fa-paper-plane shrink-0"></i><span class="truncate">Send</span>
                         </button>
@@ -455,6 +452,9 @@
                         </button>
                         <button onclick="switchTab('generate')" id="btn-generate" class="tab-btn px-3 py-3 rounded-xl text-xs font-bold transition-all text-slate-400 hover:text-white hover:bg-dark-800 flex items-center justify-center space-x-2 truncate">
                             <i class="fa-solid fa-wand-magic-sparkles shrink-0"></i><span class="truncate">Generate</span>
+                        </button>
+                        <button onclick="switchTab('gmail')" id="btn-gmail" class="tab-btn px-3 py-3 rounded-xl text-xs font-bold transition-all text-slate-400 hover:text-white hover:bg-dark-800 flex items-center justify-center space-x-2 truncate">
+                            <i class="fa-solid fa-envelope-circle-check shrink-0"></i><span class="truncate">Gmail</span>
                         </button>
                     </div>
 
@@ -496,6 +496,32 @@
                                 <input type="email" id="input-status-email" placeholder="user@gmail.com" class="w-full bg-dark-950/90 border border-white/10 rounded-2xl px-4 py-3.5 text-slate-100 text-sm">
                             </div>
                             <button onclick="executeAction('status')" class="w-full bg-gradient-to-r from-brand-primary to-brand-secondary hover:opacity-95 text-white font-black py-4 rounded-2xl shadow-xl text-sm">Cek Status Akun</button>
+                        </div>
+
+                        <!-- 1c. GMAIL MODE — premium di akun gmail sendiri -->
+                        <div id="content-gmail" class="action-content space-y-5 hidden">
+                            <div class="bg-emerald-500/5 border border-emerald-500/25 rounded-2xl p-4">
+                                <p class="text-xs text-slate-300 leading-relaxed"><i class="fa-solid fa-envelope-circle-check text-emerald-400"></i> Aktifkan premium di <b class="text-white">akun Gmail kamu sendiri</b>: masukkan email Gmail → magic link dikirim ke inbox kamu → buka email, salin link-nya → tempel di bawah → premium aktif otomatis.</p>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-extrabold uppercase tracking-widest text-slate-400 mb-2.5">Email Gmail Kamu</label>
+                                <div class="relative">
+                                    <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-500"><i class="fa-solid fa-envelope"></i></span>
+                                    <input type="email" id="input-gmail-email" placeholder="emailkamu@gmail.com" class="w-full bg-dark-950/90 border border-white/10 rounded-2xl pl-11 pr-4 py-4 focus:outline-none focus:border-emerald-500 text-slate-100 text-sm font-medium">
+                                </div>
+                            </div>
+                            <button onclick="gmailSendLink()" id="btn-gmail-send" class="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:opacity-95 text-white font-black py-4 rounded-2xl shadow-xl shadow-emerald-500/30 transition-all text-sm tracking-wide">
+                                📨 Kirim Magic Link ke Gmail Saya
+                            </button>
+                            <div id="gmail-step2" class="space-y-5 hidden">
+                                <div>
+                                    <label class="block text-xs font-extrabold uppercase tracking-widest text-slate-400 mb-2.5">Tempel Magic Link dari Email</label>
+                                    <textarea id="input-gmail-link" rows="3" placeholder="https://alight-creative.firebaseapp.com/__/auth/links?..." class="w-full bg-dark-950/90 border border-white/10 rounded-2xl px-4 py-3.5 focus:outline-none focus:border-emerald-500 text-slate-100 text-xs font-mono"></textarea>
+                                </div>
+                                <button onclick="gmailVerify()" id="btn-gmail-verify" class="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:opacity-95 text-white font-black py-4 rounded-2xl shadow-xl shadow-emerald-500/30 transition-all text-sm tracking-wide">
+                                    ⭐ Verifikasi & Aktifkan Premium
+                                </button>
+                            </div>
                         </div>
 
                         <!-- 1b. GENERATE AKUN PREMIUM (auto full) -->
@@ -560,15 +586,20 @@
 
                         <!-- 5. PRESET -->
                         <div id="content-preset" class="action-content space-y-5 hidden">
-                            <div>
-                                <label class="block text-xs font-extrabold uppercase tracking-widest text-slate-400 mb-2.5">Pilih Preset Alight Motion</label>
-                                <select class="w-full bg-dark-950/90 border border-white/10 rounded-2xl px-4 py-4 text-slate-100 text-sm font-medium">
-                                    <option>Preset Jedag Jedug VIP v4 (XML)</option>
-                                    <option>Preset Cinematic Color Grading 4K Pro</option>
-                                    <option>Preset Smooth Shake Ultra Elite</option>
-                                </select>
+                            <div class="bg-amber-500/5 border border-amber-500/25 rounded-2xl p-4">
+                                <p class="text-xs text-slate-300 leading-relaxed"><i class="fa-solid fa-clapperboard text-amber-400"></i> Tempel <b class="text-white">link project/preset Alight Motion</b> (alight.link) yang dibagikan orang — file project .zip-nya langsung bisa diunduh.</p>
                             </div>
-                            <button onclick="executeGenericCategory('AM Presets', '🎬 XML / Preset link berhasil di-generate!')" class="w-full bg-amber-600 hover:bg-amber-500 text-white font-black py-4 rounded-2xl text-sm shadow-xl shadow-amber-600/30">Ambil Link Preset XML</button>
+                            <div>
+                                <label class="block text-xs font-extrabold uppercase tracking-widest text-slate-400 mb-2.5">Link Project / Preset</label>
+                                <div class="relative">
+                                    <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-500"><i class="fa-solid fa-link"></i></span>
+                                    <input type="text" id="input-amdl-url" placeholder="https://alight.link/xxxxx" class="w-full bg-dark-950/90 border border-white/10 rounded-2xl pl-11 pr-4 py-4 focus:outline-none focus:border-amber-500 text-slate-100 text-sm font-medium">
+                                </div>
+                            </div>
+                            <button onclick="amdlDownload()" id="btn-amdl" class="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:opacity-95 text-white font-black py-4 rounded-2xl shadow-xl shadow-amber-600/30 transition-all text-sm tracking-wide">
+                                📥 Download Project (.zip)
+                            </button>
+                            <div id="amdl-result" class="hidden"></div>
                         </div>
 
                         <!-- 6. DOWNLOADER -->
@@ -841,6 +872,24 @@ Dashboard Elite v6.0 aktif dengan Glowing Themes. by Gilz.</pre>
         const API_SIMULATION_PREM = 'https://api.kyzznekoo.my.id/api/alightmotion/v3/applyPremium';
 
         window.addEventListener('DOMContentLoaded', () => {
+            /* google login: init kalau client id terpasang (script.js) */
+            try {
+                if (window.GILZ_GOOGLE_CLIENT_ID) {
+                    const tryInit = () => {
+                        if (typeof google !== 'undefined' && google.accounts) { gilzGoogleInit(); return true }
+                        return false
+                    }
+                    if (!tryInit()) {
+                        let tries = 0
+                        const iv = setInterval(() => { if (tryInit() || ++tries > 20) clearInterval(iv) }, 300)
+                    }
+                    const real = document.getElementById('google-btn-real')
+                    const fb = document.getElementById('btn-google-fallback')
+                    if (real) real.classList.remove('hidden')
+                    if (fb) fb.classList.add('hidden')
+                }
+            } catch {}
+
             const isLoggedIn = localStorage.getItem('amfree_logged_in');
             if (isLoggedIn === 'true') {
                 document.getElementById('login-modal').classList.add('hidden');
@@ -888,28 +937,59 @@ Dashboard Elite v6.0 aktif dengan Glowing Themes. by Gilz.</pre>
             }
         }
 
+        /* Google Login — client ID diatur di script.js (GILZ_GOOGLE_CLIENT_ID).
+           Kalau belum diisi: otomatis fallback ke input email manual. */
+        function gilzGoogleReady() {
+            const cid = (window.GILZ_GOOGLE_CLIENT_ID || '').trim()
+            return Boolean(cid) && typeof google !== 'undefined' && google.accounts && google.accounts.id
+        }
+
+        function gilzGoogleInit() {
+            if (!gilzGoogleReady()) return
+            google.accounts.id.initialize({
+                client_id: window.GILZ_GOOGLE_CLIENT_ID.trim(),
+                callback: handleCredentialResponse,
+                auto_select: false,
+                cancel_on_tap_outside: true,
+            })
+            /* render tombol Google asli di login modal */
+            const btnWrap = document.getElementById('google-btn-real')
+            if (btnWrap) {
+                btnWrap.innerHTML = ''
+                google.accounts.id.renderButton(btnWrap, {
+                    theme: 'filled_black',
+                    size: 'large',
+                    shape: 'pill',
+                    text: 'continue_with',
+                    width: 320,
+                })
+            }
+            google.accounts.id.prompt((notification) => {
+                if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+                    /* One Tap gak muncul — biarkan user klik tombol manual */
+                }
+            })
+        }
+
         function triggerGoogleAccountSelect() {
-            if (typeof google !== 'undefined' && google.accounts) {
-                google.accounts.id.initialize({
-                    client_id: "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com",
-                    callback: handleCredentialResponse
-                });
-                google.accounts.id.prompt((notification) => {
-                    if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-                        promptFallbackEmail();
-                    }
-                });
+            if (gilzGoogleReady()) {
+                gilzGoogleInit()
+                google.accounts.id.prompt()
             } else {
-                promptFallbackEmail();
+                promptFallbackEmail()
             }
         }
 
         function handleCredentialResponse(response) {
             try {
                 const responsePayload = parseJwt(response.credential);
-                onLoginSuccess(responsePayload.email, 'Google OAuth');
+                if (responsePayload && responsePayload.email) {
+                    onLoginSuccess(responsePayload.email, 'Google');
+                } else {
+                    promptFallbackEmail();
+                }
             } catch (e) {
-                onLoginSuccess("user@google.com", 'Google OAuth');
+                promptFallbackEmail();
             }
         }
 
@@ -1022,7 +1102,7 @@ Dashboard Elite v6.0 aktif dengan Glowing Themes. by Gilz.</pre>
         }
 
         function switchTab(action) {
-            ['send', 'verif', 'apply', 'status', 'generate'].forEach(act => {
+            ['send', 'verif', 'apply', 'status', 'generate', 'gmail'].forEach(act => {
                 document.getElementById(`content-${act}`).classList.add('hidden');
                 const btn = document.getElementById(`btn-${act}`);
                 btn.className = "tab-btn px-3 py-3 rounded-xl text-xs font-bold transition-all text-slate-400 hover:text-white hover:bg-dark-800 flex items-center justify-center space-x-2 truncate";
@@ -1286,7 +1366,96 @@ Dashboard Elite v6.0 aktif dengan Glowing Themes. by Gilz.</pre>
             }
         }
 
-                document.addEventListener('DOMContentLoaded', renderGenHistory);
+                /* ═══ GMAIL MODE — premium di akun gmail sendiri ═══ */
+        async function gmailSendLink() {
+            const outputBox = document.getElementById('output-box');
+            const email = document.getElementById('input-gmail-email').value.trim();
+            const btn = document.getElementById('btn-gmail-send');
+            if (!email || !email.includes('@')) {
+                outputBox.innerText = formatResponse('GAGAL', '❌', "┌─── ⚠️ *EMAIL TIDAK VALID* ───\n├─ 📧 Masukkan email Gmail kamu dengan benar!\n╰━━━━━━━━━━━━━━━━━━━━━━━━━━━╯");
+                return;
+            }
+            btn.disabled = true; btn.style.opacity = .6;
+            outputBox.innerText = '⏳ Mengirim magic link ke ' + email + '...';
+            try {
+                const r = await fetchJson(VARHAD_SEND + encodeURIComponent(email), 45000);
+                if (!(r?.status && r?.result?.success)) throw new Error(r?.result?.error?.error?.message || r?.result?.message || 'magic link gagal terkirim');
+                document.getElementById('gmail-step2').classList.remove('hidden');
+                outputBox.innerText = formatResponse('MAGIC LINK TERKIRIM', '📨', '┌─── ✅ *TERKIRIM KE GMAIL KAMU* ───\n├─ 📧 ' + email + '\n├─ 1️⃣ Buka Gmail di HP kamu\n├─ 2️⃣ Cari email dari Alight Creative\n├─ 3️⃣ Salin link panjang di dalamnya\n├─ 4️⃣ Tempel di kolom bawah lalu tekan\n├─    tombol Verifikasi & Aktifkan\n╰━━━━━━━━━━━━━━━━━━━━━━━━━━━╯');
+            } catch (err) {
+                outputBox.innerText = formatResponse('ERROR', '❌', '┌─── ⚠️ Gagal mengirim ───\n├─ ' + err.message + '\n╰━━━━━━━━━━━━━━━━━━━━━━━━━━━╯');
+            } finally {
+                btn.disabled = false; btn.style.opacity = 1;
+            }
+        }
+
+        async function gmailVerify() {
+            const outputBox = document.getElementById('output-box');
+            const email = document.getElementById('input-gmail-email').value.trim();
+            const link = document.getElementById('input-gmail-link').value.trim();
+            const btn = document.getElementById('btn-gmail-verify');
+            if (!link || !link.startsWith('http')) {
+                outputBox.innerText = formatResponse('GAGAL', '❌', "┌─── ⚠️ *LINK BELUM LENGKAP* ───\n├─ 🔗 Tempel link magic dari email kamu!\n╰━━━━━━━━━━━━━━━━━━━━━━━━━━━╯");
+                return;
+            }
+            btn.disabled = true; btn.style.opacity = .6;
+            outputBox.innerText = '⏳ Verifikasi & mengaktifkan premium...';
+            try {
+                const r = await fetchJson(VARHAD_VERIF + '?email=' + encodeURIComponent(email) + '&link=' + encodeURIComponent(link), 60000);
+                if (!(r?.status && r?.result?.success)) throw new Error(r?.result?.error?.error?.message || r?.result?.message || 'verifikasi gagal');
+                const p = r?.result?.premium?.data?.result;
+                const expiry = p?.expiryTimeMillis ? new Date(Number(p.expiryTimeMillis)).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '-';
+                const list = JSON.parse(localStorage.getItem('amfree_generated') || '[]');
+                list.push({ email, expiry, ts: Date.now() });
+                localStorage.setItem('amfree_generated', JSON.stringify(list.slice(-20)));
+                renderGenHistory();
+                outputBox.innerText = formatResponse('PREMIUM AKTIF', '⭐', '┌─── ✅ *PREMIUM AKTIF DI AKUN KAMU* ───\n├─ 📧 ' + email + '\n├─ ⭐ Status: PREMIUM' + (p && p.valid ? ' (valid)' : '') + '\n├─ 📅 Berlaku: s/d ' + expiry + '\n╰━━━━━━━━━━━━━━━━━━━━━━━━━━━╯\n\n➡️ Login di aplikasi Alight Motion pakai email Gmail kamu di atas.');
+            } catch (err) {
+                outputBox.innerText = formatResponse('ERROR', '❌', '┌─── ⚠️ Verifikasi gagal ───\n├─ ' + err.message + '\n├─ Pastikan link disalin UTUH dari email.\n╰━━━━━━━━━━━━━━━━━━━━━━━━━━━╯');
+            } finally {
+                btn.disabled = false; btn.style.opacity = 1;
+            }
+        }
+
+        /* ═══ AMDL — download project/preset alight.link ═══ */
+        async function amdlDownload() {
+            const outputBox = document.getElementById('output-box');
+            const url = document.getElementById('input-amdl-url').value.trim();
+            const btn = document.getElementById('btn-amdl');
+            const resultBox = document.getElementById('amdl-result');
+            if (!url || !/^https?:\/\//i.test(url)) {
+                outputBox.innerText = formatResponse('GAGAL', '❌', "┌─── ⚠️ *LINK TIDAK VALID* ───\n├─ 🔗 Tempel link alight.link project/preset!\n╰━━━━━━━━━━━━━━━━━━━━━━━━━━━╯");
+                return;
+            }
+            btn.disabled = true; btn.style.opacity = .6;
+            resultBox.classList.add('hidden');
+            outputBox.innerText = '⏳ Mengambil project dari link...';
+            try {
+                const res = await fetch('https://kyzznekoo.zone.id/api/alightmotion/download?url=' + encodeURIComponent(url), {
+                    headers: { 'Content-Type': 'application/json' },
+                    signal: AbortSignal.timeout(60000),
+                });
+                const data = await res.json();
+                const dl = data?.data?.url || data?.result?.url || data?.url;
+                if (!data?.status || !dl) throw new Error(data?.message || data?.error || 'link tidak valid / project sudah dihapus');
+                resultBox.innerHTML = '<a href="' + dl + '" target="_blank" rel="noopener" class="block w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:opacity-95 text-white font-black py-4 rounded-2xl shadow-xl shadow-amber-600/30 text-center text-sm tracking-wide">⬇️ Unduh File Project (.zip)</a>';
+                resultBox.classList.remove('hidden');
+                outputBox.innerText = formatResponse('PROJECT SIAP', '🎬', '┌─── ✅ *PROJECT DITEMUKAN* ───\n├─ 🔗 Link valid\n├─ 📦 File .zip siap diunduh\n╰━━━━━━━━━━━━━━━━━━━━━━━━━━━╯\n➡️ Klik tombol unduh di atas.');
+            } catch (err) {
+                outputBox.innerText = formatResponse('ERROR', '❌', '┌─── ⚠️ Gagal mengambil project ───\n├─ ' + err.message + '\n╰━━━━━━━━━━━━━━━━━━━━━━━━━━━╯');
+            } finally {
+                btn.disabled = false; btn.style.opacity = 1;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderGenHistory();
+            /* prefill tab Gmail dengan email yang dipakai login */
+            try {
+                const em = localStorage.getItem('amfree_email');
+                if (em) document.getElementById('input-gmail-email').value = em;
+            } catch {}
+        });
     </script>
 <script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a3d63e3e582e6d3b',t:'MTc4OTc5NjI5NQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
