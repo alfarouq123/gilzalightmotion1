@@ -2061,7 +2061,7 @@ Dashboard Elite v6.0 aktif dengan Glowing Themes. by Gilz.</pre>
           ],
           /* ═══════════ MUSIC ═══════════ */
           music: [
-            { id:'mu-cari', name:'Cari & Putar Lagu', icon:'fa-magnifying-glass-music', desc:'Cari lagu apa aja, langsung putar.', color:'green',
+            { id:'mu-cari', name:'Cari & Putar Lagu', icon:'fa-magnifying-glass-music', desc:'Cari lagu — diputar FULL (auto-cari YT), preview cuma cadangan.', color:'green', slow:true,
               fields:[{k:'q',label:'Judul / penyanyi',ph:'komang raim laode'}],
               run: async v => {
                 const r = await fetchJson(`https://itunes.apple.com/search?term=${encodeURIComponent(v.q)}&media=music&limit=8&country=ID`, 25000);
@@ -2803,6 +2803,48 @@ Dashboard Elite v6.0 aktif dengan Glowing Themes. by Gilz.</pre>
           return m + ':' + String(x).padStart(2, '0');
         }
 
+        /* ═══ FULL SONG: cari versi full di YouTube (piped) → MP3 (azbry) ═══
+           sama kayak plugin play.js: metadata dari search, audio dari YT. */
+        async function muGetYtFull(track) {
+          const q = (track.title + ' ' + track.artist).trim();
+          const s = await fetchJson(`https://api.piped.private.coffee/search?q=${encodeURIComponent(q)}&filter=videos`, 25000);
+          const item = (s?.items || []).find((x) => x?.url?.includes('v='));
+          if (!item) throw new Error('video gak ketemu');
+          const vid = item.url.split('v=')[1].split('&')[0];
+          const r = await fetchJson(`${AZB}/ytmp3?url=${encodeURIComponent('https://www.youtube.com/watch?v=' + vid)}`, 90000);
+          if (!r?.status) throw new Error(r?.message || 'konversi gagal');
+          const d = r.result || r.data || {};
+          const dl = d.download || d.url || d.link;
+          if (!dl) throw new Error('mp3 gak ketemu');
+          return { url: dl, title: d.title || track.title };
+        }
+
+        window.muPlayFull = async function(key, i, btn) {
+          const track = window.__MU?.[key]?.[i];
+          if (!track || !btn) return;
+          const orig = btn.innerHTML;
+          btn.disabled = true;
+          btn.style.opacity = .6;
+          const t0 = Date.now();
+          const tick = setInterval(() => { btn.textContent = '⏳' + Math.round((Date.now() - t0) / 1000) + 's'; }, 1000);
+          glog('info', 'cari lagu full: ' + track.title);
+          try {
+            const full = await muGetYtFull(track);
+            clearInterval(tick);
+            track.full = full.url;
+            track.preview = null;
+            track.title = track.title; /* judul asli tetap */
+            muPlay(track, { auto: true });
+          } catch (e) {
+            glog('error', 'full-song: ' + e.message + ' → fallback preview');
+            clearInterval(tick);
+            btn.innerHTML = orig;
+            btn.disabled = false;
+            btn.style.opacity = 1;
+            muPlay(track, { auto: true }); /* fallback: preview 30 dtk */
+          }
+        };
+
         window.muStop = function() {
           if (__mpState?.audio) { __mpState.audio.pause(); }
           __mpState = null;
@@ -2999,7 +3041,7 @@ Dashboard Elite v6.0 aktif dengan Glowing Themes. by Gilz.</pre>
               <div class="flex items-center gap-3 bg-dark-950 border border-white/10 rounded-2xl p-2.5">
                 ${t.artwork ? `<img src="${t.artwork}" class="w-12 h-12 rounded-lg border border-white/10 shrink-0"/>` : '<div class="w-12 h-12 rounded-lg bg-white/5 flex items-center justify-center shrink-0">🎵</div>'}
                 <div class="min-w-0 flex-1"><p class="text-[11px] font-bold text-white truncate">${(t.title||'-').replace(/</g,'&lt;')}</p><p class="text-[10px] text-slate-500 truncate">${(t.artist||'').replace(/</g,'&lt;')}</p></div>
-                <button onclick="muPlay(window.__MU['${key}'][${i}], {auto:true})" class="shrink-0 w-9 h-9 rounded-full bg-green-500 hover:bg-green-400 text-white font-black flex items-center justify-center text-xs">▶</button>
+                <button onclick="muPlayFull('${key}', ${i}, this)" title="Putar lagu FULL (auto-cari di YT)" class="shrink-0 w-9 h-9 rounded-full bg-green-500 hover:bg-green-400 text-white font-black flex items-center justify-center text-xs">▶</button>
               </div>`).join('');
           } else if (out.type === 'music-player') {
             html = '';
