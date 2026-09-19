@@ -168,7 +168,7 @@
     <div id="g_id_onload" data-auto_prompt="false"></div>
 
     <!-- UPDATE BANNER -->
-    <div id="upd-banner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:99;background:linear-gradient(90deg,#22c55e,#16a34a);color:#fff;font:bold 11px sans-serif;text-align:center;padding:8px">✅ UPDATE TERBARU TERPASANG — GILZ-HUB v2.2.1 · 108 fitur · fix panel Log Live Bot Control</div>
+    <div id="upd-banner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:99;background:linear-gradient(90deg,#22c55e,#16a34a);color:#fff;font:bold 11px sans-serif;text-align:center;padding:8px">✅ UPDATE TERBARU TERPASANG — GILZ-HUB v2.2.2 · fix Log Live (stream + token + auto-reconnect)</div>
 
     <!-- LOGIN MODAL (Disesuaikan dengan UI/UX login.html) -->
     <div id="login-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-dark-950/95 backdrop-blur-3xl px-4 transition-all duration-700">
@@ -967,7 +967,7 @@ Dashboard Elite v6.0 aktif dengan Glowing Themes. by Gilz.</pre>
 
     <!-- Footer -->
     <footer class="border-t border-white/10 mt-20 py-8 text-center text-xs text-slate-500 bg-dark-900/30 backdrop-blur-md w-full overflow-hidden">
-        <p class="mb-1.5 font-bold tracking-wide px-4">AMFREE ULTIMATE PREMIUM v6.0 &bull; Alight Motion Automation Engine <span class="text-emerald-400">[GILZ-HUB v2.2.1 (108 fitur)]</span></p>
+        <p class="mb-1.5 font-bold tracking-wide px-4">AMFREE ULTIMATE PREMIUM v6.0 &bull; Alight Motion Automation Engine <span class="text-emerald-400">[GILZ-HUB v2.2.2 (108 fitur)]</span></p>
         <p class="text-slate-600 px-4">Designed with absolute luxury & glowing elegance <span class="text-brand-primary font-bold">by gilz</span></p>
     </footer>
 
@@ -1890,27 +1890,52 @@ Dashboard Elite v6.0 aktif dengan Glowing Themes. by Gilz.</pre>
           if (res.status === 401) return { ok: false, error: 'token salah' };
           return await res.json().catch(() => ({ ok: false, error: 'respon gak valid (tunnel mati?)' }));
         }
-        let wbLogSrc = null;
-        window.wbOpenLog = function() {
+        let wbLogSession = 0;
+        window.wbOpenLog = async function() {
           const host = document.getElementById('gilz-log-live');
           if (!host) return;
-          if (wbLogSrc) { wbLogSrc.close(); wbLogSrc = null; }
           if (!wbUrl()) { host.innerHTML = '<p class="text-xs text-rose-400">belum connect — hubungkan dulu</p>'; return; }
+          const sid = ++wbLogSession; /* loop lama (kalau ada) otomatis berhenti */
           host.innerHTML = '<pre id="wb-log-pre" class="text-[10px] font-mono text-lime-300 whitespace-pre-wrap bg-black/70 rounded-2xl p-3 max-h-96 overflow-y-auto custom-scrollbar leading-relaxed">⏳ nyambung ke bot...\n</pre>';
           const pre = document.getElementById('wb-log-pre');
-          try {
-            wbLogSrc = new EventSource(wbUrl() + '/log/stream');
-            wbLogSrc.onopen = () => { pre.textContent += '✅ connected — nunggu log...\n'; };
-            wbLogSrc.onmessage = (ev) => {
-              try {
-                const lines = JSON.parse(ev.data);
-                for (const l of lines) { pre.textContent += l + '\n'; }
-                pre.scrollTop = pre.scrollHeight;
-                if (pre.textContent.length > 60000) pre.textContent = pre.textContent.slice(-30000);
-              } catch {}
-            };
-            wbLogSrc.onerror = () => { pre.textContent += '⚠️ koneksi putus — cek tunnel\n'; };
-          } catch (e) { host.innerHTML = '<p class="text-xs text-rose-400">error: ' + e.message + '</p>'; }
+          const add = (t) => {
+            pre.textContent += t + '\n';
+            pre.scrollTop = pre.scrollHeight;
+            if (pre.textContent.length > 60000) pre.textContent = pre.textContent.slice(-30000);
+          };
+          /* EventSource gak bisa kirim Authorization header → 401.
+             Pakai fetch-stream: token ikut, auto-reconnect tiap 3 dtk. */
+          while (sid === wbLogSession) {
+            try {
+              const res = await fetch(wbUrl() + '/log/stream', {
+                headers: { Authorization: 'Bearer ' + wbToken() },
+                signal: AbortSignal.timeout(3600000),
+              });
+              if (res.status === 401) { add('❌ token salah — Hubungkan ulang dengan token yang bener.'); return; }
+              if (!res.ok || !res.body) throw new Error('HTTP ' + res.status);
+              add('✅ connected — nunggu log...');
+              const reader = res.body.getReader();
+              const dec = new TextDecoder();
+              let buf = '';
+              for (;;) {
+                const { done, value } = await reader.read();
+                if (done) throw new Error('stream tutup');
+                if (sid !== wbLogSession) { try { reader.cancel(); } catch {} return; }
+                buf += dec.decode(value, { stream: true });
+                const parts = buf.split('\n\n');
+                buf = parts.pop();
+                for (const part of parts) {
+                  const line = part.split('\n').find(l => l.startsWith('data: '));
+                  if (!line) continue; /* keepalive comment ": ka" — skip */
+                  try { for (const l of JSON.parse(line.slice(6))) add(l); } catch {}
+                }
+              }
+            } catch (e) {
+              if (sid !== wbLogSession) return;
+              add('⚠️ koneksi putus (' + e.message + ') — coba lagi 3 dtk... cek tunnel/cloudflared kalau terus-terusan');
+              await new Promise(r => setTimeout(r, 3000));
+            }
+          }
         };
 
         /* ═══ BRAT TEMPLATES (persis plugins/sticker/bratextra.js) ═══ */
