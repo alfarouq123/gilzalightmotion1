@@ -168,7 +168,7 @@
     <div id="g_id_onload" data-auto_prompt="false"></div>
 
     <!-- UPDATE BANNER -->
-    <div id="upd-banner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:99;background:linear-gradient(90deg,#22c55e,#16a34a);color:#fff;font:bold 11px sans-serif;text-align:center;padding:8px">✅ UPDATE TERBARU TERPASANG — GILZ-HUB v2.2 · 108 fitur · Bot Control + Music + Brat Video</div>
+    <div id="upd-banner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:99;background:linear-gradient(90deg,#22c55e,#16a34a);color:#fff;font:bold 11px sans-serif;text-align:center;padding:8px">✅ UPDATE TERBARU TERPASANG — GILZ-HUB v2.2.1 · 108 fitur · fix panel Log Live Bot Control</div>
 
     <!-- LOGIN MODAL (Disesuaikan dengan UI/UX login.html) -->
     <div id="login-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-dark-950/95 backdrop-blur-3xl px-4 transition-all duration-700">
@@ -967,7 +967,7 @@ Dashboard Elite v6.0 aktif dengan Glowing Themes. by Gilz.</pre>
 
     <!-- Footer -->
     <footer class="border-t border-white/10 mt-20 py-8 text-center text-xs text-slate-500 bg-dark-900/30 backdrop-blur-md w-full overflow-hidden">
-        <p class="mb-1.5 font-bold tracking-wide px-4">AMFREE ULTIMATE PREMIUM v6.0 &bull; Alight Motion Automation Engine <span class="text-emerald-400">[GILZ-HUB v2.2 (108 fitur)]</span></p>
+        <p class="mb-1.5 font-bold tracking-wide px-4">AMFREE ULTIMATE PREMIUM v6.0 &bull; Alight Motion Automation Engine <span class="text-emerald-400">[GILZ-HUB v2.2.1 (108 fitur)]</span></p>
         <p class="text-slate-600 px-4">Designed with absolute luxury & glowing elegance <span class="text-brand-primary font-bold">by gilz</span></p>
     </footer>
 
@@ -2093,8 +2093,12 @@ Dashboard Elite v6.0 aktif dengan Glowing Themes. by Gilz.</pre>
               } },
             { id:'bc-log', name:'Log Live (Panel Ptero)', icon:'fa-terminal', desc:'Console log bot realtime, kayak pterodactyl.', color:'lime', noFields:true,
               run: async () => {
-                setTimeout(() => wbOpenLog(), 100);
-                return { type:'text', title:'Console', text:'Panel log dibuka di bawah — live streaming dari bot.' };
+                setTimeout(() => {
+                  wbOpenLog();
+                  const host = document.getElementById('gilz-log-live');
+                  if (host) host.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 150);
+                return { type:'text', title:'Console', text:'Panel log dibuka di atas ↑ (bagian atas kategori Bot Control) — live streaming dari bot.' };
               } },
             { id:'bc-status', name:'Status Bot', icon:'fa-gauge-high', desc:'Nama, mode, uptime, memori.', color:'lime', noFields:true,
               run: async () => {
@@ -2979,10 +2983,26 @@ Dashboard Elite v6.0 aktif dengan Glowing Themes. by Gilz.</pre>
           if (!wrap || wrap.dataset.rendered) return;
           wrap.dataset.rendered = '1';
           if (cat === 'botctl') {
+            /* panel console harus di-insert SETELAH innerHTML grid,
+               kalau sebelum → ke-timpa sama grid (bug: panel log gak muncul) */
+            wrap.innerHTML = `<div class="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">${FEATURES[cat].map(f => `
+            <div class="bg-dark-950/90 border border-white/10 rounded-2xl p-4 hover:border-brand-primary/50 transition-all" id="feat-${f.id}">
+              <div class="flex items-start gap-3">
+                <span class="w-9 h-9 rounded-xl ${BG_MAP[f.color]||BG_MAP.brand} flex items-center justify-center shrink-0"><i class="fa-solid ${f.icon} text-sm"></i></span>
+                <div class="min-w-0 flex-1">
+                  <p class="text-xs font-black ${COLOR_MAP[f.color]||'text-white'} truncate">${f.name}</p>
+                  <p class="text-[10px] text-slate-500 mt-0.5">${f.desc}</p>
+                </div>
+              </div>
+              <div class="feat-form hidden mt-4 space-y-2.5"></div>
+              <div class="feat-result hidden mt-4"></div>
+              <button onclick="toggleFeat('${f.id}')" class="mt-3 w-full bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 font-bold py-2 rounded-xl text-[11px] transition-all">${f.noFields ? '▶ Jalankan' : '▼ Buka'}</button>
+            </div>`).join('')}</div>`;
             const panel = document.createElement('div');
             panel.className = 'bg-dark-950/90 border border-lime-500/25 rounded-3xl p-4 mb-4';
             panel.innerHTML = '<div class="flex items-center justify-between mb-2"><p class="text-[10px] font-black uppercase tracking-widest text-lime-300">🖥️ Console Bot (live)</p><button onclick="wbOpenLog()" class="text-[10px] font-bold bg-lime-500/15 text-lime-300 border border-lime-500/30 px-3 py-1.5 rounded-lg">↻ Reconnect</button></div><div id="gilz-log-live"><pre class="text-[10px] font-mono text-slate-500 whitespace-pre-wrap bg-black/50 rounded-2xl p-3 max-h-72 overflow-y-auto">belum connect — jalankan "Hubungkan ke Bot" lalu buka "Log Live"</pre></div>';
             wrap.insertBefore(panel, wrap.firstChild);
+            return;
           }
           wrap.innerHTML = `<div class="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">${FEATURES[cat].map(f => `
             <div class="bg-dark-950/90 border border-white/10 rounded-2xl p-4 hover:border-brand-primary/50 transition-all" id="feat-${f.id}">
