@@ -440,7 +440,7 @@
                     </div>
 
                     <!-- Action Tabs -->
-                    <div id="amprem-tabs" class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-8 bg-dark-950/80 p-2 rounded-2xl border border-white/10">
+                    <div id="amprem-tabs" class="grid grid-cols-2 sm:grid-cols-5 gap-2 mb-8 bg-dark-950/80 p-2 rounded-2xl border border-white/10">
                         <button onclick="switchTab('send')" id="btn-send" class="tab-btn px-3 py-3 rounded-xl text-xs font-bold transition-all bg-gradient-to-r from-brand-primary to-brand-secondary text-white shadow-lg shadow-brand-primary/40 flex items-center justify-center space-x-2 truncate">
                             <i class="fa-solid fa-paper-plane shrink-0"></i><span class="truncate">Send</span>
                         </button>
@@ -452,6 +452,9 @@
                         </button>
                         <button onclick="switchTab('status')" id="btn-status" class="tab-btn px-3 py-3 rounded-xl text-xs font-bold transition-all text-slate-400 hover:text-white hover:bg-dark-800 flex items-center justify-center space-x-2 truncate">
                             <i class="fa-solid fa-chart-line shrink-0"></i><span class="truncate">Status</span>
+                        </button>
+                        <button onclick="switchTab('generate')" id="btn-generate" class="tab-btn px-3 py-3 rounded-xl text-xs font-bold transition-all text-slate-400 hover:text-white hover:bg-dark-800 flex items-center justify-center space-x-2 truncate">
+                            <i class="fa-solid fa-wand-magic-sparkles shrink-0"></i><span class="truncate">Generate</span>
                         </button>
                     </div>
 
@@ -493,6 +496,17 @@
                                 <input type="email" id="input-status-email" placeholder="user@gmail.com" class="w-full bg-dark-950/90 border border-white/10 rounded-2xl px-4 py-3.5 text-slate-100 text-sm">
                             </div>
                             <button onclick="executeAction('status')" class="w-full bg-gradient-to-r from-brand-primary to-brand-secondary hover:opacity-95 text-white font-black py-4 rounded-2xl shadow-xl text-sm">Cek Status Akun</button>
+                        </div>
+
+                        <!-- 1b. GENERATE AKUN PREMIUM (auto full) -->
+                        <div id="content-generate" class="action-content space-y-5 hidden">
+                            <div class="bg-brand-primary/5 border border-brand-primary/25 rounded-2xl p-4">
+                                <p class="text-xs text-slate-300 leading-relaxed"><i class="fa-solid fa-circle-info text-brand-primary"></i> Bot akan <b class="text-white">otomatis membuat email sementara</b>, mengirim magic link, memverifikasi, dan <b class="text-white">mengaktifkan premium</b> — satu klik, ±30 detik. Email hasil generate bisa dipakai login di aplikasi Alight Motion.</p>
+                            </div>
+                            <button onclick="executeAction('generate')" id="btn-generate-run" class="w-full bg-gradient-to-r from-brand-primary via-brand-secondary to-brand-accent hover:opacity-95 text-white font-black py-4 rounded-2xl shadow-xl shadow-brand-primary/40 transition-all flex items-center justify-center space-x-2 text-sm tracking-wide">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i><span>Generate Akun Premium</span>
+                            </button>
+                            <div id="gen-history" class="space-y-2"></div>
                         </div>
 
                         <!-- 2. GENERATOR -->
@@ -996,7 +1010,7 @@ Dashboard Elite v6.0 aktif dengan Glowing Themes. by Gilz.</pre>
         }
 
         function switchTab(action) {
-            ['send', 'verif', 'apply', 'status'].forEach(act => {
+            ['send', 'verif', 'apply', 'status', 'generate'].forEach(act => {
                 document.getElementById(`content-${act}`).classList.add('hidden');
                 const btn = document.getElementById(`btn-${act}`);
                 btn.className = "tab-btn px-3 py-3 rounded-xl text-xs font-bold transition-all text-slate-400 hover:text-white hover:bg-dark-800 flex items-center justify-center space-x-2 truncate";
@@ -1030,6 +1044,7 @@ Dashboard Elite v6.0 aktif dengan Glowing Themes. by Gilz.</pre>
 
         async function executeAction(action) {
             const outputBox = document.getElementById('output-box');
+            if (action === 'generate') { await executeGenerate(); return; }
             if (action === 'send') {
                 const email = document.getElementById('input-send-email').value.trim();
                 if (!email || !email.includes('@')) {
@@ -1047,6 +1062,121 @@ Dashboard Elite v6.0 aktif dengan Glowing Themes. by Gilz.</pre>
                 }
             }
         }
+
+        /* ═══ GENERATE AKUN PREMIUM — full otomatis ═══ */
+        const TMPMAIL_CREATE = 'https://api.kyzznekoo.my.id/api/tools/tmpmail/v2/create?duration=10';
+        const TMPMAIL_INBOX  = 'https://api.kyzznekoo.my.id/api/tools/tmpmail/v2/inbox/';
+        const VARHAD_SEND    = 'https://v2.api-varhad.my.id/tools/amprem/verif/email?email=';
+        const VARHAD_VERIF   = 'https://v2.api-varhad.my.id/tools/amprem/verif/link';
+
+        let genRunning = false;
+
+        function logStep(box, text) {
+            box.innerText += text + '\n';
+        }
+
+        function renderGenHistory() {
+            const wrap = document.getElementById('gen-history');
+            if (!wrap) return;
+            const list = JSON.parse(localStorage.getItem('amfree_generated') || '[]');
+            if (!list.length) { wrap.innerHTML = ''; return; }
+            wrap.innerHTML = '<label class="block text-xs font-extrabold uppercase tracking-widest text-slate-400 mb-1">Akun premium ter-generate (' + list.length + ')</label>' +
+                list.slice().reverse().map((a, i) =>
+                    '<div class="flex items-center justify-between gap-2 bg-dark-950/90 border border-white/10 rounded-xl px-4 py-3">' +
+                    '<div class="min-w-0"><p class="text-xs text-slate-100 font-mono truncate">' + a.email + '</p>' +
+                    '<p class="text-[10px] text-emerald-400">premium s/d ' + (a.expiry || '-') + '</p></div>' +
+                    '<button onclick="copyGenEmail(' + (list.length - 1 - i) + ')" class="shrink-0 text-[10px] font-bold bg-brand-primary/15 text-brand-primary border border-brand-primary/30 px-3 py-2 rounded-lg hover:bg-brand-primary/25">SALIN</button>' +
+                    '</div>'
+                ).join('');
+        }
+
+        function copyGenEmail(i) {
+            const list = JSON.parse(localStorage.getItem('amfree_generated') || '[]');
+            const a = list[i];
+            if (!a) return;
+            navigator.clipboard?.writeText(a.email);
+        }
+
+        async function fetchJson(url, timeoutMs = 30000) {
+            const ctrl = new AbortController();
+            const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+            try {
+                const res = await fetch(url, { signal: ctrl.signal });
+                return await res.json();
+            } finally { clearTimeout(timer); }
+        }
+
+        function extractLink(html) {
+            const decoded = String(html || '').replace(/&amp;/g, '&');
+            const m = decoded.match(/href=['"]([^'"]*firebaseapp\.com[^'"]*)['"]/i) || decoded.match(/https?:\/\/[^\s"'<>]+/i);
+            return m ? m[1].trim() : null;
+        }
+
+        async function executeGenerate() {
+            if (genRunning) return;
+            genRunning = true;
+            const btn = document.getElementById('btn-generate-run');
+            const box = document.getElementById('output-box');
+            btn.disabled = true; btn.style.opacity = .6;
+            box.innerText = '';
+
+            try {
+                /* 1 — tempmail */
+                logStep(box, '┌─── 🎲 GENERATE AKUN PREMIUM ───');
+                logStep(box, '├─ [1/5] membuat email sementara...');
+                const tm = await fetchJson(TMPMAIL_CREATE);
+                if (!tm?.status || !tm?.data?.email) throw new Error('tempmail gagal dibuat');
+                const email = tm.data.email;
+                logStep(box, '├─ 📧 Email: ' + email);
+
+                /* 2 — kirim magic link */
+                logStep(box, '├─ [2/5] mengirim magic link...');
+                const send = await fetchJson(VARHAD_SEND + encodeURIComponent(email), 45000);
+                if (!send?.status || !send?.result?.success) throw new Error(send?.result?.error?.error?.message || 'magic link gagal terkirim');
+
+                /* 3 — tunggu inbox */
+                logStep(box, '├─ [3/5] menunggu email masuk (±15 detik)...');
+                let link = null;
+                for (let i = 0; i < 15; i++) {
+                    await new Promise(r => setTimeout(r, 4000));
+                    const inbox = await fetchJson(TMPMAIL_INBOX + encodeURIComponent(email));
+                    const list = inbox?.data?.inbox || inbox?.data?.emails || [];
+                    if (list.length) {
+                        const content = list[0].content || list[0].html || list[0].body || list[0].text || '';
+                        link = extractLink(content);
+                        if (link) break;
+                    }
+                }
+                if (!link) throw new Error('email magic link gak masuk ke inbox');
+                logStep(box, '├─ 📨 link ditemukan ✓');
+
+                /* 4 — verifikasi */
+                logStep(box, '├─ [4/5] verifikasi akun...');
+                const verif = await fetchJson(VARHAD_VERIF + '?email=' + encodeURIComponent(email) + '&link=' + encodeURIComponent(link), 60000);
+                if (!verif?.status || !verif?.result?.success) throw new Error(verif?.result?.error?.error?.message || 'verifikasi gagal');
+
+                /* 5 — premium */
+                logStep(box, '├─ [5/5] mengaktifkan premium...');
+                const prem = verif?.result?.premium?.data?.result;
+                const expiry = prem?.expiryTimeMillis ? new Date(Number(prem.expiryTimeMillis)).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '-';
+
+                const list = JSON.parse(localStorage.getItem('amfree_generated') || '[]');
+                list.push({ email, expiry, ts: Date.now() });
+                localStorage.setItem('amfree_generated', JSON.stringify(list.slice(-20)));
+                renderGenHistory();
+
+                logStep(box, '╰━━━ ✅ PREMIUM AKTIF ━━━');
+                box.innerText += '\n📧 Email    : ' + email + '\n⭐ Status   : PREMIUM' + (prem?.valid ? ' (valid)' : '') + '\n📅 Berlaku  : s/d ' + expiry + '\n\n➡️ Login di aplikasi Alight Motion pakai email di atas.\n💾 Tersimpan di riwayat generate (bisa disalin).';
+            } catch (err) {
+                logStep(box, '╰━━━ ❌ GAGAL ━━━');
+                box.innerText += '\n⚠️ ' + (err.message || 'unknown error') + '\n\nCoba lagi — kalau berulang, server API-nya lagi sibuk.';
+            } finally {
+                genRunning = false;
+                btn.disabled = false; btn.style.opacity = 1;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', renderGenHistory);
     </script>
-</body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a3d6306dfb6587b7',t:'MTc4OTc5NTcyOQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
