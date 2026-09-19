@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>AMFREE Elite Ultimate v6.0 &bull; By Gilz</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -298,6 +301,10 @@
                             <button onclick="switchCategory('download'); toggleDropdown('category-dropdown');" class="w-full flex items-center space-x-3 px-3.5 py-2.5 text-xs font-semibold text-slate-300 hover:bg-brand-primary/20 hover:text-white rounded-2xl transition-all text-left">
                                 <span class="w-7 h-7 rounded-xl bg-cyan-500/20 flex items-center justify-center text-cyan-400 shrink-0"><i class="fa-solid fa-download text-xs"></i></span>
                                 <div class="truncate"><p class="font-bold text-cyan-300">All Downloader</p><p class="text-[10px] text-slate-500">YT, TT, IG, FB, Spotify, AM</p></div>
+                            </button>
+                            <button onclick="switchCategory('music'); toggleDropdown('category-dropdown');" class="w-full flex items-center space-x-3 px-3.5 py-2.5 text-xs font-semibold text-slate-300 hover:bg-brand-primary/20 hover:text-white rounded-2xl transition-all text-left">
+                                <span class="w-7 h-7 rounded-xl bg-green-500/20 flex items-center justify-center text-green-400 shrink-0"><i class="fa-solid fa-music text-xs"></i></span>
+                                <div class="truncate"><p class="font-bold text-green-300">Music Player</p><p class="text-[10px] text-slate-500">Cari & Putar Lagu Langsung</p></div>
                             </button>
                             <button onclick="switchCategory('primbon'); toggleDropdown('category-dropdown');" class="w-full flex items-center space-x-3 px-3.5 py-2.5 text-xs font-semibold text-slate-300 hover:bg-brand-primary/20 hover:text-white rounded-2xl transition-all text-left">
                                 <span class="w-7 h-7 rounded-xl bg-amber-500/20 flex items-center justify-center text-amber-400 shrink-0"><i class="fa-solid fa-star-and-crescent text-xs"></i></span>
@@ -891,7 +898,7 @@ Dashboard Elite v6.0 aktif dengan Glowing Themes. by Gilz.</pre>
 
     <!-- Footer -->
     <footer class="border-t border-white/10 mt-20 py-8 text-center text-xs text-slate-500 bg-dark-900/30 backdrop-blur-md w-full overflow-hidden">
-        <p class="mb-1.5 font-bold tracking-wide px-4">AMFREE ULTIMATE PREMIUM v6.0 &bull; Alight Motion Automation Engine</p>
+        <p class="mb-1.5 font-bold tracking-wide px-4">AMFREE ULTIMATE PREMIUM v6.0 &bull; Alight Motion Automation Engine <span class="text-emerald-400">[GILZ-HUB v2.1]</span></p>
         <p class="text-slate-600 px-4">Designed with absolute luxury & glowing elegance <span class="text-brand-primary font-bold">by gilz</span></p>
     </footer>
 
@@ -1224,6 +1231,7 @@ Dashboard Elite v6.0 aktif dengan Glowing Themes. by Gilz.</pre>
                 'downloader': { title: 'Media Downloader Pro', desc: 'Unduh video dari berbagai platform sosial media dengan mudah.', icon: 'fa-download' },
                 'tiktok-pro': { title: 'TikTok Downloader Pro', desc: 'Unduh video, foto slide, dan audio TikTok tanpa watermark.', icon: 'fa-brands fa-tiktok' },
                 'primbon': { title: 'Primbon & Ramalan', desc: 'Arti nama, kecocokan pasangan, nomor hoki, dan ramalan jodoh.', icon: 'fa-star-and-crescent' },
+                'music': { title: 'Music Player', desc: 'Cari lagu, dengarkan preview, dan putar MP3 full langsung di web.', icon: 'fa-music' },
                 'ai': { title: 'AI Center', desc: 'Chat AI, solver matematika, paraphrase, dan generator gambar.', icon: 'fa-robot' },
                 'canvas': { title: 'Canvas Maker', desc: 'Bikin kartu keren: music card, profile IG, fake saldo, dan lainnya.', icon: 'fa-palette' },
                 'download': { title: 'All Downloader', desc: 'YouTube MP3, TikTok no WM, IG, FB, Pinterest, Spotify, Alight Motion.', icon: 'fa-download' },
@@ -1936,6 +1944,60 @@ Dashboard Elite v6.0 aktif dengan Glowing Themes. by Gilz.</pre>
             { id:'cv-fakewa', name:'Fake Chat WhatsApp', icon:'fa-whatsapp', desc:'Bikin mock chat WA (buat bercanda).', color:'pink',
               fields:[{k:'nama',label:'Nama kontak',ph:'Ibu Kos'},{k:'pesan',label:'Isi pesan',ph:'bayar kos sek sekarang',type:'textarea'},{k:'reply',label:'Balasan (opsional)',ph:'oke bu, sabar ya'},{k:'jam',label:'Jam',ph:'22:30'},{k:'posisi',label:'Posisi bubble',type:'select',options:['kanan (kamu)','kiri (dia)']}],
               run: async v => ({ type:'image', url: await makeFakeChat(v.nama, v.pesan, v.reply, v.jam, v.posisi.includes('kanan') ? 'kanan' : 'kiri') }) },
+            { id:'cv-caption', name:'Caption Foto', icon:'fa-closed-captioning', desc:'Beri teks besar di foto (atas/bawah).', color:'pink',
+              fields:[{k:'url',label:'URL foto',ph:'https://i.pravatar.cc/600'},{k:'teks',label:'Teks',ph:'kenapa lu liat foto aku'},{k:'posisi',label:'Posisi',type:'select',options:['atas','tengah','bawah']}],
+              run: async v => {
+                const img = await bratLoadImage(v.url);
+                const W = img.naturalWidth || 600, H = img.naturalHeight || 600;
+                const c = document.createElement('canvas');
+                c.width = W; c.height = H;
+                const ctx = c.getContext('2d');
+                ctx.drawImage(img, 0, 0, W, H);
+                const fs = Math.floor(W / 12);
+                ctx.font = 'bold ' + fs + 'px Impact, Arial Black, sans-serif';
+                ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                ctx.lineWidth = fs / 12;
+                ctx.strokeStyle = '#000';
+                const y = v.posisi === 'atas' ? fs : v.posisi === 'tengah' ? H / 2 : H - fs;
+                const words = String(v.teks || '').split(/\s+/);
+                const lines = []; let cur = '';
+                for (const w of words) {
+                  const t = cur ? cur + ' ' + w : w;
+                  if (ctx.measureText(t).width > W - 40 && cur) { lines.push(cur); cur = w; } else cur = t;
+                }
+                if (cur) lines.push(cur);
+                const startY = y - (lines.length - 1) * fs * 0.6;
+                lines.forEach((l, i) => {
+                  const ly = startY + i * fs * 1.2;
+                  ctx.strokeText(l.toUpperCase(), W/2, ly);
+                  ctx.fillStyle = '#fff';
+                  ctx.fillText(l.toUpperCase(), W/2, ly);
+                });
+                return { type:'image', url: c.toDataURL('image/png') };
+              } },
+            { id:'cv-wasted', name:'WASTED (GTA)', icon:'fa-skull', desc:'Foto jadi meme GTA "WASTED".', color:'pink',
+              fields:[{k:'url',label:'URL foto',ph:'https://i.pravatar.cc/500'},{k:'teks',label:'Teks',ph:'WASTED'}],
+              run: async v => {
+                const img = await bratLoadImage(v.url);
+                const W = img.naturalWidth || 512, H = img.naturalHeight || 512;
+                const c = document.createElement('canvas');
+                c.width = W; c.height = H;
+                const ctx = c.getContext('2d');
+                ctx.drawImage(img, 0, 0, W, H);
+                const d = ctx.getImageData(0, 0, W, H);
+                for (let i = 0; i < d.data.length; i += 4) {
+                  const g = (d.data[i]*0.3 + d.data[i+1]*0.59 + d.data[i+2]*0.11);
+                  d.data[i] = g; d.data[i+1] = g; d.data[i+2] = g;
+                }
+                ctx.putImageData(d, 0, 0);
+                ctx.fillStyle = 'rgba(0,0,0,0.45)';
+                ctx.fillRect(0, H/2 - 60, W, 120);
+                ctx.fillStyle = '#d4af37';
+                ctx.font = 'bold ' + Math.floor(W/8) + 'px serif';
+                ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                ctx.fillText(String(v.teks || 'WASTED').toUpperCase(), W/2, H/2);
+                return { type:'image', url: c.toDataURL('image/png') };
+              } },
             { id:'cv-balogo', name:'BA Logo', icon:'fa-font', desc:'Teks gaya logo BA.', color:'pink',
               fields:[{k:'text',label:'Teks',ph:'GILZ'}],
               run: async v => ({ type:'image', url:`https://api.nexray.web.id/maker/balogo?text=${encodeURIComponent(v.text)}` }) },
@@ -1997,6 +2059,31 @@ Dashboard Elite v6.0 aktif dengan Glowing Themes. by Gilz.</pre>
                   { label:'📦 Download .zip', url:`https://codeload.github.com/${r.full_name}/zip/refs/heads/${r.default_branch}` }] };
               } },
           ],
+          /* ═══════════ MUSIC ═══════════ */
+          music: [
+            { id:'mu-cari', name:'Cari & Putar Lagu', icon:'fa-magnifying-glass-music', desc:'Cari lagu apa aja, langsung putar.', color:'green',
+              fields:[{k:'q',label:'Judul / penyanyi',ph:'komang raim laode'}],
+              run: async v => {
+                const r = await fetchJson(`https://itunes.apple.com/search?term=${encodeURIComponent(v.q)}&media=music&limit=8&country=ID`, 25000);
+                const list = r?.results || [];
+                if (!list.length) throw new Error('lagu gak ketemu');
+                return { type:'music-list', title:'Hasil: ' + v.q, tracks: list.map(t => ({
+                  title: t.trackName, artist: t.artistName, artwork: t.artworkUrl100 ? t.artworkUrl100.replace('100x100','300x300') : '',
+                  preview: t.previewUrl, album: t.collectionName, link: t.trackViewUrl,
+                })) };
+              } },
+            { id:'mu-yt', name:'YouTube → Putar MP3', icon:'fa-brands fa-youtube', desc:'Paste link YT, putar MP3 full di web.', color:'green', slow:true,
+              fields:[{k:'url',label:'Link YouTube',ph:'https://youtu.be/...'}],
+              run: async v => {
+                const r = await fetchJson(`${AZB}/ytmp3?url=${encodeURIComponent(v.url)}`, 90000);
+                if (!r?.status) throw new Error(r?.message || 'link tidak valid');
+                const d = r.result || r.data || {};
+                const dl = d.download || d.url || d.link;
+                if (!dl) throw new Error('file mp3 tidak ditemukan');
+                return { type:'music-player', track: { title: d.title || 'YouTube MP3', artist: d.author || 'YouTube', artwork: d.thumbnail || '', full: dl } };
+              } },
+          ],
+
           /* ═══════════ PRIMBON ═══════════ */
           primbon: [
             { id:'pb-artinama', name:'Arti Nama', icon:'fa-signature', desc:'Cek arti namamu.', color:'amber',
@@ -2251,6 +2338,34 @@ Dashboard Elite v6.0 aktif dengan Glowing Themes. by Gilz.</pre>
                 const lang = (v.lang || 'id').split(' ')[0];
                 const url = `https://translate.google.com/translate_tts?ie=UTF-8&tl=${lang}&client=tw-ob&q=${encodeURIComponent(String(v.text).slice(0, 180))}`;
                 return { type:'audio', url, title:'Suara (perkiraan)' };
+              } },
+            { id:'tl-morse', name:'Morse Code', icon:'fa-tower-broadcast', desc:'Teks ↔ morse (· −).', color:'brand',
+              fields:[{k:'text',label:'Teks / morse',ph:'sos'},{k:'mode',label:'Mode',type:'select',options:['encode','decode']}],
+              run: async v => {
+                const M = {a:'.-',b:'-...',c:'-.-.',d:'-..',e:'.',f:'..-.',g:'--.',h:'....',i:'..',j:'.---',k:'-.-',l:'.-..',m:'--',n:'-.',o:'---',p:'.--.',q:'--.-',r:'.-.',s:'...',t:'-',u:'..-',v:'...-',w:'.--',x:'-..-',y:'-.--',z:'--..','0':'-----','1':'.----','2':'..---','3':'...--','4':'....-','5':'.....','6':'-....','7':'--...','8':'---..','9':'----.'};
+                const RM = Object.fromEntries(Object.entries(M).map(([k,x]) => [x,k]));
+                if (v.mode === 'encode') {
+                  const out = [...(v.text||'').toLowerCase()].map(ch => ch === ' ' ? '/' : M[ch] || '').filter(Boolean).join(' ');
+                  if (!out) throw new Error('gak ada karakter yang bisa dikonversi');
+                  return { type:'copy', title:'Morse', text: out };
+                } else {
+                  const out = (v.text||'').trim().split(/\s+/).map(c => c === '/' ? ' ' : RM[c] || '').join('');
+                  if (!out.trim()) throw new Error('kode morse tidak valid');
+                  return { type:'copy', title:'Teks', text: out };
+                }
+              } },
+            { id:'tl-binary', name:'Binary Converter', icon:'fa-0', desc:'Teks ↔ biner (0100...).', color:'brand',
+              fields:[{k:'text',label:'Teks / biner',ph:'halo'},{k:'mode',label:'Mode',type:'select',options:['encode','decode']}],
+              run: async v => {
+                try {
+                  if (v.mode === 'encode') {
+                    return { type:'copy', title:'Biner', text: [...(v.text||'')].map(c => c.charCodeAt(0).toString(2).padStart(8,'0')).join(' ') };
+                  } else {
+                    const t = (v.text||'').trim().split(/\s+/).map(b => String.fromCharCode(parseInt(b, 2))).join('');
+                    if (!t) throw new Error();
+                    return { type:'copy', title:'Teks', text: t };
+                  }
+                } catch (e) { throw new Error('format biner tidak valid (harus 8-bit per kelompok)'); }
               } },
             { id:'tl-case', name:'Case Converter', icon:'fa-font', desc:'UPPER/lower/Title/camelCase/snake/kebab.', color:'brand',
               fields:[{k:'text',label:'Teks',ph:'halo dunia baruku'},{k:'mode',label:'Mode',type:'select',options:['UPPERCASE','lowercase','Title Case','CamelCase','snake_case','kebab-case','aLtErNaTiNg']}],
@@ -2639,9 +2754,43 @@ Dashboard Elite v6.0 aktif dengan Glowing Themes. by Gilz.</pre>
           }
         };
 
+        /* ═══ MUSIC PLAYER ═══ */
+        let __audioEl = null;
+        function playTrack(track, btn) {
+          if (__audioEl) { __audioEl.pause(); __audioEl = null; }
+          document.querySelectorAll('.mu-playing').forEach(e => { e.classList.remove('mu-playing'); e.innerHTML = e.dataset.orig || '▶'; });
+          const src = track.full || track.preview;
+          if (!src) { alert('lagu ini gak punya audio yang bisa diputar'); return; }
+          __audioEl = new Audio(src);
+          __audioEl.controls = true;
+          __audioEl.style.width = '100%';
+          const box = document.getElementById('now-playing');
+          box.innerHTML = `
+            <div class="flex items-center gap-3">
+              ${track.artwork ? `<img src="${track.artwork}" class="w-14 h-14 rounded-xl border border-white/15"/>` : '<div class="w-14 h-14 rounded-xl bg-green-500/20 flex items-center justify-center">🎵</div>'}
+              <div class="min-w-0 flex-1"><p class="text-xs font-black text-white truncate">${(track.title||'').replace(/</g,'&lt;')}</p><p class="text-[10px] text-slate-400 truncate">${(track.artist||'').replace(/</g,'&lt;')}</p></div>
+            </div>`;
+          __audioEl.play().catch(() => {});
+          box.appendChild(__audioEl);
+          if (btn) { btn.dataset.orig = btn.innerHTML; btn.classList.add('mu-playing'); btn.innerHTML = '⏸'; }
+          glog('info', 'play: ' + track.title);
+        }
+
         function renderFeatResult(result, out) {
           let html = '';
-          if (out.type === 'video') {
+          if (out.type === 'music-list') {
+            html = `<div id="now-playing" class="mb-3 space-y-2"></div>` + out.tracks.map((t,i) => `
+              <div class="flex items-center gap-3 bg-dark-950 border border-white/10 rounded-2xl p-2.5">
+                ${t.artwork ? `<img src="${t.artwork}" class="w-12 h-12 rounded-lg border border-white/10 shrink-0"/>` : '<div class="w-12 h-12 rounded-lg bg-white/5 flex items-center justify-center shrink-0">🎵</div>'}
+                <div class="min-w-0 flex-1"><p class="text-[11px] font-bold text-white truncate">${(t.title||'-').replace(/</g,'&lt;')}</p><p class="text-[10px] text-slate-500 truncate">${(t.artist||'').replace(/</g,'&lt;')}</p></div>
+                ${t.preview || t.full ? `<button onclick="playTrack(__MU['${result.dataset.feat||''}'][${i}], this)" class="shrink-0 w-9 h-9 rounded-full bg-green-500 hover:bg-green-400 text-white font-black flex items-center justify-center text-xs">▶</button>` : ''}
+              </div>`).join('');
+            const fid = result.closest('[id^="feat-"]')?.id || '';
+            if (fid) { const key = fid.slice(5); window.__MU = window.__MU || {}; window.__MU[key] = out.tracks; html = html.replaceAll(`__MU['']`, `__MU['${key}']`); }
+          } else if (out.type === 'music-player') {
+            html = '';
+            setTimeout(() => playTrack(out.track, null), 50);
+          } else if (out.type === 'video') {
             html = `<video src="${out.url}" controls autoplay loop class="w-full max-h-80 rounded-2xl border border-white/10 bg-black"></video><a href="${out.url}" download="${out.filename || 'video.webm'}" class="block mt-2 w-full bg-white/10 hover:bg-white/20 border border-white/15 text-white font-bold py-2.5 rounded-xl text-center text-[11px]">⬇️ Simpan Video</a>`;
           } else if (out.type === 'audio') {
             html = `<audio src="${out.url}" controls class="w-full"></audio><p class="text-[10px] text-slate-500 mt-1 text-center">${(out.title||'')}</p>`;
