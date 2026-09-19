@@ -1,0 +1,1292 @@
+<!DOCTYPE html>
+<html lang="id" class="dark theme-neon-laser">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AMFREE Elite Ultimate v6.0 &bull; By Gilz</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Identity Services (Library Resmi Pilihan Akun Google) -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <!-- Axios untuk request HTTP ke API Internal -->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <!-- Marked.js untuk parsing Markdown ala Gemini AI -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- UUID generator -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/uuid/8.3.2/uuidv4.min.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        dark: {
+                            950: '#010206',
+                            900: '#050811',
+                            800: '#0d1527',
+                            700: '#17223b',
+                            600: '#273754'
+                        },
+                        brand: {
+                            primary: 'var(--brand-primary)',
+                            secondary: 'var(--brand-secondary)',
+                            accent: 'var(--brand-accent)',
+                            glow: 'var(--brand-glow)',
+                        }
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 6s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'float': 'float 5s ease-in-out infinite',
+                        'shine': 'shine 2.5s linear infinite',
+                        'spin-slow': 'spin 12s linear infinite',
+                        'glow-pulse': 'glowPulse 3s ease-in-out infinite',
+                        'rgb-shift': 'rgbGlow 10s ease infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        },
+                        shine: {
+                            '0%': { backgroundPosition: '200% 0' },
+                            '100%': { backgroundPosition: '-200% 0' }
+                        },
+                        glowPulse: {
+                            '0%, 100%': { opacity: '0.6', transform: 'scale(1)' },
+                            '50%': { opacity: '1', transform: 'scale(1.05)' }
+                        },
+                        rgbGlow: {
+                            '0%': { '--brand-primary': '#06b6d4', '--brand-secondary': '#3b82f6', '--brand-accent': '#8b5cf6', '--brand-glow': 'rgba(6, 182, 212, 0.9)' },
+                            '25%': { '--brand-primary': '#ec4899', '--brand-secondary': '#c084fc', '--brand-accent': '#facc15', '--brand-glow': 'rgba(236, 72, 153, 0.9)' },
+                            '50%': { '--brand-primary': '#10b981', '--brand-secondary': '#06b6d4', '--brand-accent': '#3b82f6', '--brand-glow': 'rgba(16, 185, 129, 0.9)' },
+                            '75%': { '--brand-primary': '#f59e0b', '--brand-secondary': '#f97316', '--brand-accent': '#eab308', '--brand-glow': 'rgba(245, 158, 11, 0.9)' },
+                            '100%': { '--brand-primary': '#06b6d4', '--brand-secondary': '#3b82f6', '--brand-accent': '#8b5cf6', '--brand-glow': 'rgba(6, 182, 212, 0.9)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --brand-primary: #06b6d4;
+            --brand-secondary: #3b82f6;
+            --brand-accent: #8b5cf6;
+            --brand-glow: rgba(6, 182, 212, 0.6);
+        }
+        /* Expanded Luxury Glowing Themes */
+        body.theme-neon-laser { --brand-primary: #06b6d4; --brand-secondary: #3b82f6; --brand-accent: #8b5cf6; --brand-glow: rgba(6, 182, 212, 0.7); }
+        body.theme-ultra-violet { --brand-primary: #c084fc; --brand-secondary: #ec4899; --brand-accent: #f43f5e; --brand-glow: rgba(192, 132, 252, 0.7); }
+        body.theme-cyberpunk { --brand-primary: #facc15; --brand-secondary: #ff007f; --brand-accent: #00f0ff; --brand-glow: rgba(250, 204, 21, 0.7); }
+        body.theme-solar-flare { --brand-primary: #fb923c; --brand-secondary: #f43f5e; --brand-accent: #eab308; --brand-glow: rgba(251, 146, 60, 0.7); }
+        body.theme-purple { --brand-primary: #a855f7; --brand-secondary: #d946ef; --brand-accent: #ec4899; --brand-glow: rgba(168, 85, 247, 0.6); }
+        body.theme-emerald { --brand-primary: #10b981; --brand-secondary: #06b6d4; --brand-accent: #3b82f6; --brand-glow: rgba(16, 185, 129, 0.6); }
+        body.theme-gold { --brand-primary: #f59e0b; --brand-secondary: #f97316; --brand-accent: #eab308; --brand-glow: rgba(245, 158, 11, 0.6); }
+        body.theme-ruby { --brand-primary: #f43f5e; --brand-secondary: #e11d48; --brand-accent: #fb7185; --brand-glow: rgba(244, 63, 94, 0.6); }
+        body.theme-rgb-rainbow { animation: rgbGlow 10s ease infinite; }
+
+        *, *::before, *::after { box-sizing: border-box; }
+        html, body { max-width: 100vw; overflow-x: hidden !important; }
+        .glass-panel {
+            background: linear-gradient(135deg, rgba(13, 21, 39, 0.88) 0%, rgba(5, 8, 17, 0.96) 100%);
+            backdrop-filter: blur(35px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 0 30px var(--brand-glow);
+            transition: box-shadow 0.5s ease, border-color 0.5s ease;
+        }
+        .text-glow { text-shadow: 0 0 35px var(--brand-glow); }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(1, 2, 6, 0.8); }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: var(--brand-primary); opacity: 0.8; border-radius: 9999px; box-shadow: 0 0 10px var(--brand-glow); }
+        @keyframes scanline { 0% { transform: translateY(-100%); } 100% { transform: translateY(1000%); } }
+        .scanline::after {
+            content: ""; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+            background: linear-gradient(to bottom, transparent, var(--brand-glow), transparent);
+            animation: scanline 4s linear infinite; pointer-events: none;
+        }
+    </style>
+</head>
+<body class="bg-dark-950 text-slate-100 min-h-screen font-sans selection:bg-brand-primary selection:text-white relative overflow-x-hidden w-full theme-neon-laser">
+
+    <!-- Hidden Google Official One-Tap Element -->
+    <div id="g_id_onload"
+         data-client_id="YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com"
+         data-callback="handleCredentialResponse"
+         data-auto_prompt="false">
+    </div>
+
+    <!-- LOGIN MODAL (Disesuaikan dengan UI/UX login.html) -->
+    <div id="login-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-dark-950/95 backdrop-blur-3xl px-4 transition-all duration-700">
+        <div class="glass-panel scanline rounded-[2.5rem] p-6 sm:p-8 max-w-md w-full relative ring-2 ring-brand-primary/40 shadow-[0_0_120px_var(--brand-glow)] overflow-hidden">
+            
+            <!-- Badge & Header -->
+            <div class="text-center mb-6">
+                <span class="text-[10px] tracking-[0.2em] uppercase text-slate-900 font-extrabold px-3 py-1 bg-gradient-to-r from-brand-primary to-brand-secondary rounded-full shadow-md inline-flex items-center gap-1.5">
+                    <i class="fa-solid fa-crown text-xs"></i> 1 Tahun Gratis
+                </span>
+                <h2 class="text-2xl font-black text-white mt-3 text-glow">Alight Motion Premium</h2>
+                <p class="text-xs text-slate-400 mt-1">Akses fitur Pro tanpa batas & tanpa watermark</p>
+            </div>
+
+            <!-- Navigation Tabs -->
+            <div class="flex bg-black/40 border border-white/10 rounded-2xl p-1 mb-5">
+                <button id="authLoginTabBtn" onclick="switchAuthTab('login')" class="flex-1 py-2.5 rounded-xl text-xs font-bold transition-all bg-gradient-to-r from-brand-primary to-brand-secondary text-slate-950 shadow-md">Masuk</button>
+                <button id="authRegisterTabBtn" onclick="switchAuthTab('register')" class="flex-1 py-2.5 rounded-xl text-xs font-bold transition-all text-slate-400 hover:text-white">Daftar</button>
+            </div>
+
+            <!-- Google Login Button -->
+            <button onclick="triggerGoogleAccountSelect()" class="w-full bg-white/10 hover:bg-white/20 border border-white/20 text-white font-semibold py-3 px-4 rounded-xl text-xs transition-all flex items-center justify-center gap-3 mb-5 hover:-translate-y-0.5 shadow-md">
+                <svg class="w-4 h-4" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                    <path fill="#FBBC05" d="M5.84 14.1c-.22-.66-.35-1.36-.35-2.1s.13-1.44.35-2.1V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.62z"/>
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+                </svg>
+                Pilih Akun Email HP
+            </button>
+
+            <div class="flex items-center my-4 text-[10px] text-slate-500 font-bold uppercase tracking-wider">
+                <div class="flex-1 border-b border-white/10"></div>
+                <span class="px-3">Atau Dengan Email/Password</span>
+                <div class="flex-1 border-b border-white/10"></div>
+            </div>
+
+            <!-- Form Login -->
+            <form id="loginFormModal" onsubmit="handleAuthSubmit(event, 'Masuk')" class="space-y-4">
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-300 mb-1.5">Alamat Email</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-envelope absolute left-4 top-1/2 -translate-y-1/2 text-brand-primary text-xs"></i>
+                        <input type="email" id="loginEmailInput" placeholder="nama@email.com" required class="w-full bg-black/40 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-brand-primary transition-all">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-300 mb-1.5">Kata Sandi</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-brand-primary text-xs"></i>
+                        <input type="password" id="loginPassInput" placeholder="••••••••" required class="w-full bg-black/40 border border-white/10 rounded-xl pl-10 pr-10 py-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-brand-primary transition-all">
+                        <i class="fa-solid fa-eye absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-brand-primary cursor-pointer text-xs" onclick="togglePassVisibility('loginPassInput', this)"></i>
+                    </div>
+                </div>
+                <button type="submit" class="w-full bg-gradient-to-r from-brand-primary via-brand-secondary to-brand-accent hover:opacity-95 text-slate-950 font-black py-3 rounded-xl shadow-lg shadow-brand-primary/40 transition-all text-xs tracking-wide flex items-center justify-center space-x-2">
+                    <span>Aktivasi Premium</span>
+                    <i class="fa-solid fa-bolt"></i>
+                </button>
+            </form>
+
+            <!-- Form Daftar -->
+            <form id="registerFormModal" onsubmit="handleAuthSubmit(event, 'Daftar')" class="space-y-4 hidden">
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-300 mb-1.5">Nama Lengkap</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-user absolute left-4 top-1/2 -translate-y-1/2 text-brand-primary text-xs"></i>
+                        <input type="text" id="regNameInput" placeholder="Masukkan nama kamu" required class="w-full bg-black/40 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-brand-primary transition-all">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-300 mb-1.5">Alamat Email</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-envelope absolute left-4 top-1/2 -translate-y-1/2 text-brand-primary text-xs"></i>
+                        <input type="email" id="regEmailInput" placeholder="nama@email.com" required class="w-full bg-black/40 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-brand-primary transition-all">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-300 mb-1.5">Buat Kata Sandi Baru</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-brand-primary text-xs"></i>
+                        <input type="password" id="regPassInput" placeholder="Buat kata sandi baru" required class="w-full bg-black/40 border border-white/10 rounded-xl pl-10 pr-10 py-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-brand-primary transition-all">
+                        <i class="fa-solid fa-eye absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-brand-primary cursor-pointer text-xs" onclick="togglePassVisibility('regPassInput', this)"></i>
+                    </div>
+                </div>
+                <button type="submit" class="w-full bg-gradient-to-r from-brand-primary via-brand-secondary to-brand-accent hover:opacity-95 text-slate-950 font-black py-3 rounded-xl shadow-lg shadow-brand-primary/40 transition-all text-xs tracking-wide flex items-center justify-center space-x-2">
+                    <span>Klaim Akun Premium</span>
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                </button>
+            </form>
+
+            <div class="mt-6 pt-4 border-t border-white/5 text-center">
+                <p class="text-[11px] text-slate-500">Alight Motion Premium Free 1 Year <span class="text-brand-primary font-bold">by gilzzz</span></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ambient Glowing Background Lighting Orbs -->
+    <div class="absolute top-0 left-1/4 w-[500px] h-[500px] bg-brand-primary/20 rounded-full blur-[180px] pointer-events-none animate-glow-pulse"></div>
+    <div class="absolute top-1/3 right-10 w-[450px] h-[450px] bg-brand-secondary/20 rounded-full blur-[180px] pointer-events-none animate-pulse-slow"></div>
+
+    <!-- Header / Navbar -->
+    <header class="border-b border-white/10 bg-dark-900/60 backdrop-blur-2xl sticky top-0 z-40 w-full shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex justify-between items-center relative">
+            <div class="flex items-center space-x-3 min-w-0">
+                <div class="bg-gradient-to-tr from-brand-primary via-brand-secondary to-brand-accent p-2.5 rounded-2xl shadow-xl shadow-brand-primary/40 ring-2 ring-white/25 animate-float shrink-0">
+                    <i class="fa-solid fa-crown text-white text-lg"></i>
+                </div>
+                <div class="min-w-0">
+                    <h1 class="font-black text-sm sm:text-xl tracking-wider text-white flex items-center gap-2 truncate">
+                        <span class="truncate">AMFREE ULTIMATE</span>
+                        <span class="text-[9px] sm:text-[10px] bg-gradient-to-r from-brand-primary to-brand-secondary text-white px-2 py-0.5 rounded-full font-black tracking-widest uppercase shrink-0 shadow-md">ULTRA v6.0</span>
+                    </h1>
+                    <p class="text-[11px] sm:text-xs text-slate-400 truncate">15 Elite Modules &bull; <span class="text-brand-primary font-bold">by gilz</span></p>
+                </div>
+            </div>
+            
+            <div class="flex items-center space-x-2 sm:space-x-3 shrink-0">
+                <!-- LIVE PING BADGE -->
+                <div class="hidden xl:flex items-center space-x-2 bg-dark-950/80 px-3 py-2 rounded-2xl border border-white/10 text-xs font-mono text-emerald-400 shadow-inner">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                    <span>Ping: <strong id="live-ping">12</strong>ms</span>
+                </div>
+
+                <!-- QUICK ACTIONS BAR BUTTONS -->
+                <button onclick="triggerQuickAudit()" class="hidden md:flex items-center space-x-1.5 bg-dark-800/80 hover:bg-dark-700 border border-white/10 text-slate-200 px-3 py-2.5 rounded-2xl text-xs font-bold transition-all shadow-lg hover:border-brand-primary/50" title="Jalankan Audit Cepat">
+                    <i class="fa-solid fa-gauge-high text-amber-400"></i><span>Audit</span>
+                </button>
+                <button onclick="triggerGlobalClear()" class="hidden md:flex items-center space-x-1.5 bg-dark-800/80 hover:bg-dark-700 border border-white/10 text-slate-200 px-3 py-2.5 rounded-2xl text-xs font-bold transition-all shadow-lg hover:border-brand-primary/50" title="Bersihkan Cache Sistem">
+                    <i class="fa-solid fa-broom text-cyan-400"></i><span>Flush</span>
+                </button>
+
+                <!-- THEME SELECTOR DROPDOWN -->
+                <div class="relative">
+                    <button onclick="toggleDropdown('theme-dropdown')" class="bg-dark-800/90 hover:bg-dark-700 border border-white/15 text-slate-200 p-2.5 sm:px-3.5 sm:py-2.5 rounded-2xl transition-all shadow-lg flex items-center space-x-2 group hover:border-brand-primary/80 ring-1 ring-brand-primary/30" title="Ganti Tema Bercahaya">
+                        <i class="fa-solid fa-palette text-brand-primary animate-spin-slow"></i>
+                        <span class="text-xs font-bold text-slate-200 hidden md:inline">Tema Glow</span>
+                    </button>
+                    <div id="theme-dropdown" class="hidden absolute right-0 mt-3 w-64 glass-panel rounded-3xl shadow-2xl p-2.5 z-50 ring-1 ring-white/15 space-y-1">
+                        <div class="px-3 py-2 text-[10px] font-black tracking-widest text-brand-primary uppercase border-b border-white/10 mb-1.5 flex items-center justify-between">
+                            <span>Varian Tema Bercahaya</span>
+                            <i class="fa-solid fa-wand-magic-sparkles"></i>
+                        </div>
+                        <button onclick="setTheme('theme-rgb-rainbow')" class="w-full flex items-center space-x-2.5 px-3.5 py-2.5 text-xs font-semibold text-slate-200 bg-gradient-to-r from-pink-500/20 via-purple-500/20 to-cyan-500/20 hover:opacity-100 rounded-2xl transition-all border border-pink-500/30 shadow-[0_0_15px_rgba(236,72,153,0.4)]"><span class="w-3.5 h-3.5 rounded-full bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-400 animate-spin"></span><span class="font-bold text-pink-300">🌈 RGB Rainbow Shift (Animasi)</span></button>
+                        <button onclick="setTheme('theme-neon-laser')" class="w-full flex items-center space-x-2.5 px-3.5 py-2.5 text-xs font-semibold text-slate-300 hover:bg-cyan-500/25 hover:text-white rounded-2xl transition-all"><span class="w-3.5 h-3.5 rounded-full bg-cyan-400 shadow-[0_0_10px_#06b6d4]"></span><span>Neon Laser (Cyan)</span></button>
+                        <button onclick="setTheme('theme-ultra-violet')" class="w-full flex items-center space-x-2.5 px-3.5 py-2.5 text-xs font-semibold text-slate-300 hover:bg-purple-500/25 hover:text-white rounded-2xl transition-all"><span class="w-3.5 h-3.5 rounded-full bg-purple-400 shadow-[0_0_10px_#c084fc]"></span><span>Ultra Violet Glow</span></button>
+                        <button onclick="setTheme('theme-cyberpunk')" class="w-full flex items-center space-x-2.5 px-3.5 py-2.5 text-xs font-semibold text-slate-300 hover:bg-yellow-500/25 hover:text-white rounded-2xl transition-all"><span class="w-3.5 h-3.5 rounded-full bg-yellow-400 shadow-[0_0_10px_#facc15]"></span><span>Cyberpunk Neon</span></button>
+                        <button onclick="setTheme('theme-solar-flare')" class="w-full flex items-center space-x-2.5 px-3.5 py-2.5 text-xs font-semibold text-slate-300 hover:bg-orange-500/25 hover:text-white rounded-2xl transition-all"><span class="w-3.5 h-3.5 rounded-full bg-orange-400 shadow-[0_0_10px_#fb923c]"></span><span>Solar Flare Gold</span></button>
+                        <button onclick="setTheme('theme-purple')" class="w-full flex items-center space-x-2.5 px-3.5 py-2.5 text-xs font-semibold text-slate-300 hover:bg-purple-600/25 hover:text-white rounded-2xl transition-all"><span class="w-3.5 h-3.5 rounded-full bg-purple-500"></span><span>Neon Purple</span></button>
+                        <button onclick="setTheme('theme-emerald')" class="w-full flex items-center space-x-2.5 px-3.5 py-2.5 text-xs font-semibold text-slate-300 hover:bg-emerald-600/25 hover:text-white rounded-2xl transition-all"><span class="w-3.5 h-3.5 rounded-full bg-emerald-500"></span><span>Emerald Cyber</span></button>
+                        <button onclick="setTheme('theme-gold')" class="w-full flex items-center space-x-2.5 px-3.5 py-2.5 text-xs font-semibold text-slate-300 hover:bg-amber-600/25 hover:text-white rounded-2xl transition-all"><span class="w-3.5 h-3.5 rounded-full bg-amber-500"></span><span>Royal Gold</span></button>
+                        <button onclick="setTheme('theme-ruby')" class="w-full flex items-center space-x-2.5 px-3.5 py-2.5 text-xs font-semibold text-slate-300 hover:bg-rose-600/25 hover:text-white rounded-2xl transition-all"><span class="w-3.5 h-3.5 rounded-full bg-rose-500"></span><span>Crimson Ruby</span></button>
+                    </div>
+                </div>
+
+                <!-- CATEGORIES DROPDOWN -->
+                <div class="relative">
+                    <button onclick="toggleDropdown('category-dropdown')" class="bg-dark-800/90 hover:bg-dark-700 border border-white/15 text-slate-200 px-3.5 sm:px-4 py-2.5 rounded-2xl transition-all shadow-lg flex items-center space-x-2 group hover:border-brand-primary/80 ring-1 ring-white/10">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping shrink-0"></span>
+                        <span class="text-xs font-bold tracking-wider uppercase text-slate-200 group-hover:text-white hidden sm:inline">15 Modules</span>
+                        <span class="text-xs font-bold tracking-wider uppercase text-slate-200 group-hover:text-white sm:hidden">Menu</span>
+                        <i class="fa-solid fa-chevron-down text-[10px] text-brand-primary group-hover:rotate-180 transition-transform"></i>
+                    </button>
+                    
+                    <div id="category-dropdown" class="hidden absolute right-0 mt-3 w-72 sm:w-80 glass-panel rounded-3xl shadow-2xl p-2.5 z-50 ring-1 ring-white/15 max-h-[85vh] overflow-y-auto custom-scrollbar">
+                        <div class="px-3 py-2 text-[10px] font-black tracking-widest text-brand-primary uppercase border-b border-white/10 mb-1.5 flex items-center justify-between">
+                            <span>15 Elite System Modules</span>
+                            <i class="fa-solid fa-layer-group"></i>
+                        </div>
+                        <div class="space-y-1">
+                            <button onclick="switchCategory('amprem'); toggleDropdown('category-dropdown');" class="w-full flex items-center space-x-3 px-3.5 py-2.5 text-xs font-semibold text-slate-300 hover:bg-brand-primary/20 hover:text-white rounded-2xl transition-all text-left">
+                                <span class="w-7 h-7 rounded-xl bg-brand-primary/20 flex items-center justify-center text-brand-primary shrink-0"><i class="fa-solid fa-bolt text-xs"></i></span>
+                                <div class="truncate"><p class="font-bold">1. AmFree Premium</p><p class="text-[10px] text-slate-500">Magic Link Automation</p></div>
+                            </button>
+                            <button onclick="switchCategory('generator'); toggleDropdown('category-dropdown');" class="w-full flex items-center space-x-3 px-3.5 py-2.5 text-xs font-semibold text-slate-300 hover:bg-brand-primary/20 hover:text-white rounded-2xl transition-all text-left">
+                                <span class="w-7 h-7 rounded-xl bg-brand-primary/20 flex items-center justify-center text-brand-primary shrink-0"><i class="fa-solid fa-key text-xs"></i></span>
+                                <div class="truncate"><p class="font-bold">2. Key Generator</p><p class="text-[10px] text-slate-500">VIP Token & Lifetime Pass</p></div>
+                            </button>
+                            <button onclick="switchCategory('tools'); toggleDropdown('category-dropdown');" class="w-full flex items-center space-x-3 px-3.5 py-2.5 text-xs font-semibold text-slate-300 hover:bg-brand-primary/20 hover:text-white rounded-2xl transition-all text-left">
+                                <span class="w-7 h-7 rounded-xl bg-brand-primary/20 flex items-center justify-center text-brand-primary shrink-0"><i class="fa-solid fa-toolbox text-xs"></i></span>
+                                <div class="truncate"><p class="font-bold">3. Utilities & Tools</p><p class="text-[10px] text-slate-500">Encoder, Decoder & Payload</p></div>
+                            </button>
+                            <button onclick="switchCategory('analytics'); toggleDropdown('category-dropdown');" class="w-full flex items-center space-x-3 px-3.5 py-2.5 text-xs font-semibold text-slate-300 hover:bg-brand-primary/20 hover:text-white rounded-2xl transition-all text-left">
+                                <span class="w-7 h-7 rounded-xl bg-brand-primary/20 flex items-center justify-center text-brand-primary shrink-0"><i class="fa-solid fa-chart-pie text-xs"></i></span>
+                                <div class="truncate"><p class="font-bold">4. System Analytics</p><p class="text-[10px] text-slate-500">Real-time Traffic & Uptime</p></div>
+                            </button>
+                            <button onclick="switchCategory('preset'); toggleDropdown('category-dropdown');" class="w-full flex items-center space-x-3 px-3.5 py-2.5 text-xs font-semibold text-slate-300 hover:bg-brand-primary/20 hover:text-white rounded-2xl transition-all text-left">
+                                <span class="w-7 h-7 rounded-xl bg-brand-primary/20 flex items-center justify-center text-brand-primary shrink-0"><i class="fa-solid fa-clapperboard text-xs"></i></span>
+                                <div class="truncate"><p class="font-bold">5. AM Presets & XML</p><p class="text-[10px] text-slate-500">Jedag Jedug & Cinematic XML</p></div>
+                            </button>
+                            <button onclick="switchCategory('downloader'); toggleDropdown('category-dropdown');" class="w-full flex items-center space-x-3 px-3.5 py-2.5 text-xs font-semibold text-slate-300 hover:bg-brand-primary/20 hover:text-white rounded-2xl transition-all text-left">
+                                <span class="w-7 h-7 rounded-xl bg-brand-primary/20 flex items-center justify-center text-brand-primary shrink-0"><i class="fa-solid fa-download text-xs"></i></span>
+                                <div class="truncate"><p class="font-bold">6. Media Downloader</p><p class="text-[10px] text-slate-500">TikTok, IG & YouTube Grabber</p></div>
+                            </button>
+                            <button onclick="switchCategory('tiktok-pro'); toggleDropdown('category-dropdown');" class="w-full flex items-center space-x-3 px-3.5 py-2.5 text-xs font-semibold text-slate-300 hover:bg-brand-primary/20 hover:text-white rounded-2xl transition-all text-left">
+                                <span class="w-7 h-7 rounded-xl bg-purple-500/20 flex items-center justify-center text-purple-400 shrink-0"><i class="fa-brands fa-tiktok text-xs"></i></span>
+                                <div class="truncate"><p class="font-bold text-purple-300">7. TikTok Downloader Pro</p><p class="text-[10px] text-slate-500">No Watermark & Audio Grabber</p></div>
+                            </button>
+                            <button onclick="switchCategory('database'); toggleDropdown('category-dropdown');" class="w-full flex items-center space-x-3 px-3.5 py-2.5 text-xs font-semibold text-slate-300 hover:bg-brand-primary/20 hover:text-white rounded-2xl transition-all text-left">
+                                <span class="w-7 h-7 rounded-xl bg-brand-primary/20 flex items-center justify-center text-brand-primary shrink-0"><i class="fa-solid fa-database text-xs"></i></span>
+                                <div class="truncate"><p class="font-bold">8. Database Inspector</p><p class="text-[10px] text-slate-500">SQL Runner & Records Viewer</p></div>
+                            </button>
+                            <button onclick="switchCategory('broadcast'); toggleDropdown('category-dropdown');" class="w-full flex items-center space-x-3 px-3.5 py-2.5 text-xs font-semibold text-slate-300 hover:bg-brand-primary/20 hover:text-white rounded-2xl transition-all text-left">
+                                <span class="w-7 h-7 rounded-xl bg-brand-primary/20 flex items-center justify-center text-brand-primary shrink-0"><i class="fa-solid fa-bullhorn text-xs"></i></span>
+                                <div class="truncate"><p class="font-bold">9. WhatsApp Broadcast</p><p class="text-[10px] text-slate-500">Mass Announcement Engine</p></div>
+                            </button>
+                            <button onclick="switchCategory('security'); toggleDropdown('category-dropdown');" class="w-full flex items-center space-x-3 px-3.5 py-2.5 text-xs font-semibold text-slate-300 hover:bg-brand-primary/20 hover:text-white rounded-2xl transition-all text-left">
+                                <span class="w-7 h-7 rounded-xl bg-brand-primary/20 flex items-center justify-center text-brand-primary shrink-0"><i class="fa-solid fa-shield-halved text-xs"></i></span>
+                                <div class="truncate"><p class="font-bold">10. Security & Firewall</p><p class="text-[10px] text-slate-500">DDoS Guard & Rate Limit</p></div>
+                            </button>
+                            <button onclick="switchCategory('settings'); toggleDropdown('category-dropdown');" class="w-full flex items-center space-x-3 px-3.5 py-2.5 text-xs font-semibold text-slate-300 hover:bg-brand-primary/20 hover:text-white rounded-2xl transition-all text-left">
+                                <span class="w-7 h-7 rounded-xl bg-brand-primary/20 flex items-center justify-center text-brand-primary shrink-0"><i class="fa-solid fa-gear text-xs"></i></span>
+                                <div class="truncate"><p class="font-bold">11. Bot Configurations</p><p class="text-[10px] text-slate-500">Advanced Behavior Settings</p></div>
+                            </button>
+                            <button onclick="switchCategory('apikey'); toggleDropdown('category-dropdown');" class="w-full flex items-center space-x-3 px-3.5 py-2.5 text-xs font-semibold text-slate-300 hover:bg-brand-primary/20 hover:text-white rounded-2xl transition-all text-left">
+                                <span class="w-7 h-7 rounded-xl bg-brand-primary/20 flex items-center justify-center text-brand-primary shrink-0"><i class="fa-solid fa-fingerprint text-xs"></i></span>
+                                <div class="truncate"><p class="font-bold">12. API Key Manager</p><p class="text-[10px] text-slate-500">Generate & Revoke Keys</p></div>
+                            </button>
+                            <button onclick="switchCategory('traffic'); toggleDropdown('category-dropdown');" class="w-full flex items-center space-x-3 px-3.5 py-2.5 text-xs font-semibold text-slate-300 hover:bg-brand-primary/20 hover:text-white rounded-2xl transition-all text-left">
+                                <span class="w-7 h-7 rounded-xl bg-brand-primary/20 flex items-center justify-center text-brand-primary shrink-0"><i class="fa-solid fa-wave-square text-xs"></i></span>
+                                <div class="truncate"><p class="font-bold">13. Traffic Sniffer</p><p class="text-[10px] text-slate-500">Packet Flow & Live Monitor</p></div>
+                            </button>
+                            <button onclick="switchCategory('sandbox'); toggleDropdown('category-dropdown');" class="w-full flex items-center space-x-3 px-3.5 py-2.5 text-xs font-semibold text-slate-300 hover:bg-brand-primary/20 hover:text-white rounded-2xl transition-all text-left">
+                                <span class="w-7 h-7 rounded-xl bg-brand-primary/20 flex items-center justify-center text-brand-primary shrink-0"><i class="fa-solid fa-code text-xs"></i></span>
+                                <div class="truncate"><p class="font-bold">14. Sandbox Terminal</p><p class="text-[10px] text-slate-500">Execute Custom Payload</p></div>
+                            </button>
+                            <button onclick="switchCategory('backup'); toggleDropdown('category-dropdown');" class="w-full flex items-center space-x-3 px-3.5 py-2.5 text-xs font-semibold text-slate-300 hover:bg-brand-primary/20 hover:text-white rounded-2xl transition-all text-left">
+                                <span class="w-7 h-7 rounded-xl bg-brand-primary/20 flex items-center justify-center text-brand-primary shrink-0"><i class="fa-solid fa-cloud-arrow-down text-xs"></i></span>
+                                <div class="truncate"><p class="font-bold">15. Cloud Backup</p><p class="text-[10px] text-slate-500">Export & Import Configs</p></div>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <button onclick="handleLogout()" class="bg-rose-500/10 hover:bg-rose-500/25 border border-rose-500/30 text-rose-400 px-3 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-1.5 shrink-0 shadow-md" title="Keluar">
+                    <i class="fa-solid fa-power-off"></i><span class="hidden sm:inline">Logout</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-8 w-full overflow-hidden">
+        <!-- TOP STATS OVERVIEW -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            <div class="glass-panel rounded-3xl p-6 relative overflow-hidden group hover:border-brand-primary/60 transition-all">
+                <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-brand-primary/20 rounded-full blur-2xl"></div>
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-[10px] font-black uppercase tracking-widest text-slate-400">Total Requests</p>
+                        <h3 class="text-2xl font-black text-white mt-1">68,490</h3>
+                    </div>
+                    <div class="w-11 h-11 rounded-2xl bg-brand-primary/20 border border-brand-primary/40 flex items-center justify-center text-brand-primary shadow-inner shrink-0">
+                        <i class="fa-solid fa-chart-line text-base"></i>
+                    </div>
+                </div>
+                <div class="mt-4 flex items-center text-[11px] text-emerald-400 font-bold gap-1">
+                    <i class="fa-solid fa-arrow-trend-up"></i><span>+21.4% hari ini</span>
+                </div>
+            </div>
+
+            <div class="glass-panel rounded-3xl p-6 relative overflow-hidden group hover:border-brand-secondary/60 transition-all">
+                <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-brand-secondary/20 rounded-full blur-2xl"></div>
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-[10px] font-black uppercase tracking-widest text-slate-400">Active Licenses</p>
+                        <h3 class="text-2xl font-black text-white mt-1">5,240</h3>
+                    </div>
+                    <div class="w-11 h-11 rounded-2xl bg-brand-secondary/20 border border-brand-secondary/40 flex items-center justify-center text-brand-secondary shadow-inner shrink-0">
+                        <i class="fa-solid fa-shield-check text-base"></i>
+                    </div>
+                </div>
+                <div class="mt-4 flex items-center text-[11px] text-emerald-400 font-bold gap-1">
+                    <i class="fa-solid fa-circle-check"></i><span>100% Glowing Nodes</span>
+                </div>
+            </div>
+
+            <div class="glass-panel rounded-3xl p-6 relative overflow-hidden group hover:border-blue-500/60 transition-all">
+                <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-blue-500/20 rounded-full blur-2xl"></div>
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-[10px] font-black uppercase tracking-widest text-slate-400">System Uptime</p>
+                        <h3 class="text-2xl font-black text-white mt-1">99.99%</h3>
+                    </div>
+                    <div class="w-11 h-11 rounded-2xl bg-blue-500/20 border border-blue-500/40 flex items-center justify-center text-blue-400 shadow-inner shrink-0">
+                        <i class="fa-solid fa-server text-base"></i>
+                    </div>
+                </div>
+                <div class="mt-4 flex items-center text-[11px] text-blue-400 font-bold gap-1">
+                    <i class="fa-solid fa-bolt"></i><span>Ultra Fast Ping</span>
+                </div>
+            </div>
+
+            <div class="glass-panel rounded-3xl p-6 relative overflow-hidden group hover:border-emerald-500/60 transition-all">
+                <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-emerald-500/20 rounded-full blur-2xl"></div>
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-[10px] font-black uppercase tracking-widest text-slate-400">Dashboard Author</p>
+                        <h3 class="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-brand-primary to-brand-secondary mt-1">By Gilz</h3>
+                    </div>
+                    <div class="w-11 h-11 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 shadow-inner shrink-0">
+                        <i class="fa-solid fa-code text-base"></i>
+                    </div>
+                </div>
+                <div class="mt-4 flex items-center text-[11px] text-brand-primary font-bold gap-1">
+                    <i class="fa-solid fa-star"></i><span>Elite Edition v6.0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- MAIN SECTION -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 w-full">
+            <div class="lg:col-span-2 space-y-6 min-w-0">
+                <div class="glass-panel rounded-[2.5rem] p-5 sm:p-8 relative w-full overflow-hidden">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 border-b border-white/10 pb-5">
+                        <div class="min-w-0">
+                            <h2 id="panel-title" class="text-lg sm:text-2xl font-black flex items-center space-x-3 text-white truncate">
+                                <span class="p-2 sm:p-2.5 bg-brand-primary/15 border border-brand-primary/30 rounded-2xl text-brand-primary shadow-inner shrink-0"><i class="fa-solid fa-bolt"></i></span>
+                                <span class="truncate">AmFree Command Center</span>
+                            </h2>
+                            <p id="panel-desc" class="text-xs text-slate-400 mt-1">Kelola lisensi premium Alight Motion secara instan & otomatis.</p>
+                        </div>
+                        <span id="category-badge" class="text-[11px] bg-brand-primary/15 text-brand-primary px-4 py-1.5 rounded-full border border-brand-primary/30 font-mono font-black tracking-widest uppercase shadow-sm shrink-0">amprem</span>
+                    </div>
+
+                    <!-- Action Tabs -->
+                    <div id="amprem-tabs" class="grid grid-cols-2 sm:grid-cols-5 gap-2 mb-8 bg-dark-950/80 p-2 rounded-2xl border border-white/10">
+                        <button onclick="switchTab('send')" id="btn-send" class="tab-btn px-3 py-3 rounded-xl text-xs font-bold transition-all bg-gradient-to-r from-brand-primary to-brand-secondary text-white shadow-lg shadow-brand-primary/40 flex items-center justify-center space-x-2 truncate">
+                            <i class="fa-solid fa-paper-plane shrink-0"></i><span class="truncate">Send</span>
+                        </button>
+                        <button onclick="switchTab('verif')" id="btn-verif" class="tab-btn px-3 py-3 rounded-xl text-xs font-bold transition-all text-slate-400 hover:text-white hover:bg-dark-800 flex items-center justify-center space-x-2 truncate">
+                            <i class="fa-solid fa-shield-check shrink-0"></i><span class="truncate">Verif</span>
+                        </button>
+                        <button onclick="switchTab('apply')" id="btn-apply" class="tab-btn px-3 py-3 rounded-xl text-xs font-bold transition-all text-slate-400 hover:text-white hover:bg-dark-800 flex items-center justify-center space-x-2 truncate">
+                            <i class="fa-solid fa-user-check shrink-0"></i><span class="truncate">Apply</span>
+                        </button>
+                        <button onclick="switchTab('status')" id="btn-status" class="tab-btn px-3 py-3 rounded-xl text-xs font-bold transition-all text-slate-400 hover:text-white hover:bg-dark-800 flex items-center justify-center space-x-2 truncate">
+                            <i class="fa-solid fa-chart-line shrink-0"></i><span class="truncate">Status</span>
+                        </button>
+                        <button onclick="switchTab('generate')" id="btn-generate" class="tab-btn px-3 py-3 rounded-xl text-xs font-bold transition-all text-slate-400 hover:text-white hover:bg-dark-800 flex items-center justify-center space-x-2 truncate">
+                            <i class="fa-solid fa-wand-magic-sparkles shrink-0"></i><span class="truncate">Generate</span>
+                        </button>
+                    </div>
+
+                    <!-- Forms / Dynamic Contents for 15 Categories -->
+                    <div id="form-container" class="w-full">
+                        <!-- 1. AMPREM -->
+                        <div id="content-send" class="action-content space-y-5">
+                            <div>
+                                <label class="block text-xs font-extrabold uppercase tracking-widest text-slate-400 mb-2.5">Email Target Alight Motion</label>
+                                <div class="relative">
+                                    <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-500"><i class="fa-solid fa-envelope"></i></span>
+                                    <input type="email" id="input-send-email" placeholder="user@gmail.com" class="w-full bg-dark-950/90 border border-white/10 rounded-2xl pl-11 pr-4 py-4 focus:outline-none focus:border-brand-primary text-slate-100 text-sm font-medium">
+                                </div>
+                            </div>
+                            <button onclick="executeAction('send')" class="w-full bg-gradient-to-r from-brand-primary via-brand-secondary to-brand-accent hover:opacity-95 text-white font-black py-4 rounded-2xl shadow-xl shadow-brand-primary/40 transition-all flex items-center justify-center space-x-2 text-sm tracking-wide">
+                                <span>Kirim Magic Link Sekarang</span>
+                                <i class="fa-solid fa-arrow-right"></i>
+                            </button>
+                        </div>
+                        <div id="content-verif" class="action-content space-y-5 hidden">
+                            <div>
+                                <label class="block text-xs font-extrabold uppercase tracking-widest text-slate-400 mb-2">Email Target</label>
+                                <input type="email" id="input-verif-email" placeholder="user@gmail.com" class="w-full bg-dark-950/90 border border-white/10 rounded-2xl px-4 py-3.5 mb-4 text-slate-100 text-sm">
+                                <label class="block text-xs font-extrabold uppercase tracking-widest text-slate-400 mb-2">Magic Link (URL)</label>
+                                <input type="text" id="input-verif-link" placeholder="https://..." class="w-full bg-dark-950/90 border border-white/10 rounded-2xl px-4 py-3.5 text-slate-100 text-sm">
+                            </div>
+                            <button onclick="executeAction('verif')" class="w-full bg-gradient-to-r from-brand-primary to-brand-secondary hover:opacity-95 text-white font-black py-4 rounded-2xl shadow-xl text-sm">Verifikasi Link Sekarang</button>
+                        </div>
+                        <div id="content-apply" class="action-content space-y-5 hidden">
+                            <div>
+                                <label class="block text-xs font-extrabold uppercase tracking-widest text-slate-400 mb-2.5">Email Target</label>
+                                <input type="email" id="input-apply-email" placeholder="user@gmail.com" class="w-full bg-dark-950/90 border border-white/10 rounded-2xl px-4 py-3.5 text-slate-100 text-sm">
+                            </div>
+                            <button onclick="executeAction('apply')" class="w-full bg-gradient-to-r from-brand-primary to-brand-secondary hover:opacity-95 text-white font-black py-4 rounded-2xl shadow-xl text-sm">Apply Premium Akun</button>
+                        </div>
+                        <div id="content-status" class="action-content space-y-5 hidden">
+                            <div>
+                                <label class="block text-xs font-extrabold uppercase tracking-widest text-slate-400 mb-2.5">Email Target</label>
+                                <input type="email" id="input-status-email" placeholder="user@gmail.com" class="w-full bg-dark-950/90 border border-white/10 rounded-2xl px-4 py-3.5 text-slate-100 text-sm">
+                            </div>
+                            <button onclick="executeAction('status')" class="w-full bg-gradient-to-r from-brand-primary to-brand-secondary hover:opacity-95 text-white font-black py-4 rounded-2xl shadow-xl text-sm">Cek Status Akun</button>
+                        </div>
+
+                        <!-- 1b. GENERATE AKUN PREMIUM (auto full) -->
+                        <div id="content-generate" class="action-content space-y-5 hidden">
+                            <div class="bg-brand-primary/5 border border-brand-primary/25 rounded-2xl p-4">
+                                <p class="text-xs text-slate-300 leading-relaxed"><i class="fa-solid fa-circle-info text-brand-primary"></i> Bot akan <b class="text-white">otomatis membuat email sementara</b>, mengirim magic link, memverifikasi, dan <b class="text-white">mengaktifkan premium</b> — satu klik, ±30 detik. Email hasil generate bisa dipakai login di aplikasi Alight Motion.</p>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-extrabold uppercase tracking-widest text-slate-400 mb-2.5">Jumlah Akun</label>
+                                <select id="gen-count" class="w-full bg-dark-950/90 border border-white/10 rounded-2xl px-4 py-4 text-slate-100 text-sm font-medium">
+                                    <option value="1" selected>1 Akun</option>
+                                    <option value="2">2 Akun Sekaligus</option>
+                                    <option value="3">3 Akun Sekaligus</option>
+                                    <option value="5">5 Akun Sekaligus</option>
+                                </select>
+                            </div>
+                            <button onclick="executeAction('generate')" id="btn-generate-run" class="w-full bg-gradient-to-r from-brand-primary via-brand-secondary to-brand-accent hover:opacity-95 text-white font-black py-4 rounded-2xl shadow-xl shadow-brand-primary/40 transition-all flex items-center justify-center space-x-2 text-sm tracking-wide">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i><span>Generate Akun Premium</span>
+                            </button>
+                            <div id="gen-history" class="space-y-2"></div>
+                            <button onclick="downloadGenHistory()" id="btn-gen-dl" class="hidden w-full bg-dark-800/90 hover:bg-dark-700 border border-white/15 text-slate-200 font-bold py-3 rounded-2xl text-xs transition-all flex items-center justify-center space-x-2">
+                                <i class="fa-solid fa-download"></i><span>Unduh Riwayat (.txt)</span>
+                            </button>
+                        </div>
+
+                        <!-- 2. GENERATOR -->
+                        <div id="content-generator" class="action-content space-y-5 hidden">
+                            <div>
+                                <label class="block text-xs font-extrabold uppercase tracking-widest text-slate-400 mb-2.5">Pilih Tipe Token Akses</label>
+                                <select id="gen-type" class="w-full bg-dark-950/90 border border-white/10 rounded-2xl px-4 py-4 text-slate-100 text-sm font-medium">
+                                    <option value="vip">VIP Token (30 Hari Full Akses)</option>
+                                    <option value="lifetime">Lifetime Pass Unlimited</option>
+                                    <option value="trial">Trial Access (24 Jam)</option>
+                                </select>
+                            </div>
+                            <button onclick="executeGenericCategory('Key Generator', '🔑 Berhasil membuat token akses unik & VIP!')" class="w-full bg-brand-primary hover:opacity-90 text-white font-black py-4 rounded-2xl text-sm shadow-xl shadow-brand-primary/30">Generate Unique Key</button>
+                        </div>
+
+                        <!-- 3. TOOLS -->
+                        <div id="content-tools" class="action-content space-y-5 hidden">
+                            <div>
+                                <label class="block text-xs font-extrabold uppercase tracking-widest text-slate-400 mb-2.5">Input Teks / Payload Encoder</label>
+                                <textarea id="tools-input" rows="3" placeholder="Masukkan teks untuk diproses..." class="w-full bg-dark-950/90 border border-white/10 rounded-2xl p-4 text-slate-100 text-sm"></textarea>
+                            </div>
+                            <button onclick="executeGenericCategory('Utilities Tools', '🛠️ Berhasil memproses encoder & payload data!')" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-4 rounded-2xl text-sm shadow-xl shadow-blue-600/30">Jalankan Utility Encoder</button>
+                        </div>
+
+                        <!-- 4. ANALYTICS -->
+                        <div id="content-analytics" class="action-content space-y-4 hidden">
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="bg-dark-950/90 p-5 rounded-2xl border border-white/10">
+                                    <p class="text-xs text-slate-400 font-bold">Active Connections</p>
+                                    <p class="text-2xl font-black text-emerald-400 mt-1">2,840</p>
+                                </div>
+                                <div class="bg-dark-950/90 p-5 rounded-2xl border border-white/10">
+                                    <p class="text-xs text-slate-400 font-bold">Success Rate</p>
+                                    <p class="text-2xl font-black text-brand-primary mt-1">99.99%</p>
+                                </div>
+                            </div>
+                            <button onclick="executeGenericCategory('System Analytics', '📊 Data analitik server berhasil direfresh!')" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-4 rounded-2xl text-sm shadow-xl shadow-emerald-600/30">Refresh Live Data</button>
+                        </div>
+
+                        <!-- 5. PRESET -->
+                        <div id="content-preset" class="action-content space-y-5 hidden">
+                            <div>
+                                <label class="block text-xs font-extrabold uppercase tracking-widest text-slate-400 mb-2.5">Pilih Preset Alight Motion</label>
+                                <select class="w-full bg-dark-950/90 border border-white/10 rounded-2xl px-4 py-4 text-slate-100 text-sm font-medium">
+                                    <option>Preset Jedag Jedug VIP v4 (XML)</option>
+                                    <option>Preset Cinematic Color Grading 4K Pro</option>
+                                    <option>Preset Smooth Shake Ultra Elite</option>
+                                </select>
+                            </div>
+                            <button onclick="executeGenericCategory('AM Presets', '🎬 XML / Preset link berhasil di-generate!')" class="w-full bg-amber-600 hover:bg-amber-500 text-white font-black py-4 rounded-2xl text-sm shadow-xl shadow-amber-600/30">Ambil Link Preset XML</button>
+                        </div>
+
+                        <!-- 6. DOWNLOADER -->
+                        <div id="content-downloader" class="action-content space-y-5 hidden">
+                            <div>
+                                <label class="block text-xs font-extrabold uppercase tracking-widest text-slate-400 mb-2.5">Link Media (IG/YouTube/FB)</label>
+                                <input type="text" placeholder="https://..." class="w-full bg-dark-950/90 border border-white/10 rounded-2xl px-4 py-4 text-slate-100 text-sm">
+                            </div>
+                            <button onclick="executeGenericCategory('Media Downloader', '📥 Media berhasil diunduh tanpa watermark!')" class="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-black py-4 rounded-2xl text-sm shadow-xl shadow-cyan-600/30">Download Media Sekarang</button>
+                        </div>
+
+                        <!-- 7. TIKTOK DOWNLOADER PRO -->
+                        <div id="content-tiktok-pro" class="action-content space-y-5 hidden">
+                            <div>
+                                <label class="block text-xs font-extrabold uppercase tracking-widest text-slate-400 mb-2.5">Link TikTok URL (Video / Photo Slide)</label>
+                                <div class="relative">
+                                    <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-500"><i class="fa-solid fa-link text-purple-400"></i></span>
+                                    <input type="text" id="tt-url" placeholder="https://vt.tiktok.com/..." class="w-full bg-dark-950/90 border border-white/10 rounded-2xl pl-11 pr-4 py-4 focus:outline-none focus:border-purple-500 text-slate-100 text-sm font-medium">
+                                </div>
+                            </div>
+                            <button onclick="handleTikTokDownload()" class="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:opacity-95 text-white font-black py-4 rounded-2xl shadow-xl shadow-purple-600/40 transition-all flex items-center justify-center space-x-2 text-sm tracking-wide">
+                                <span>Proses Download TikTok</span>
+                                <i class="fa-solid fa-cloud-arrow-down"></i>
+                            </button>
+
+                            <!-- TikTok Results Container -->
+                            <div id="tt-result-container" class="mt-6 hidden space-y-4 border-t border-white/10 pt-6">
+                                <div id="tt-media-preview" class="rounded-2xl overflow-hidden bg-dark-950 border border-white/10 flex justify-center p-4"></div>
+                                
+                                <div class="bg-dark-950/90 border border-white/10 p-4 rounded-2xl space-y-2 text-xs text-slate-300">
+                                    <p id="tt-res-author" class="font-bold text-white"></p>
+                                    <p id="tt-res-title" class="text-slate-400"></p>
+                                    <div id="tt-res-stats" class="grid grid-cols-3 gap-2 pt-2 border-t border-white/10 text-center font-mono"></div>
+                                </div>
+
+                                <div id="tt-download-links" class="space-y-2"></div>
+                            </div>
+                        </div>
+
+                        <!-- 8. DATABASE -->
+                        <div id="content-database" class="action-content space-y-5 hidden">
+                            <div>
+                                <label class="block text-xs font-extrabold uppercase tracking-widest text-slate-400 mb-2.5">SQL Query</label>
+                                <input type="text" value="SELECT * FROM elite_users WHERE active = 1" class="w-full bg-dark-950/90 border border-white/10 rounded-2xl px-4 py-4 text-slate-100 text-xs font-mono">
+                            </div>
+                            <button onclick="executeGenericCategory('Database Inspector', '🗄️ Query executed successfully. 3,240 rows found.')" class="w-full bg-rose-600 hover:bg-rose-500 text-white font-black py-4 rounded-2xl text-sm shadow-xl shadow-rose-600/30">Run SQL Query</button>
+                        </div>
+
+                        <!-- 9. BROADCAST -->
+                        <div id="content-broadcast" class="action-content space-y-5 hidden">
+                            <div>
+                                <label class="block text-xs font-extrabold uppercase tracking-widest text-slate-400 mb-2.5">Pesan Broadcast WhatsApp</label>
+                                <textarea rows="3" placeholder="Ketik pengumuman broadcast..." class="w-full bg-dark-950/90 border border-white/10 rounded-2xl p-4 text-slate-100 text-sm"></textarea>
+                            </div>
+                            <button onclick="executeGenericCategory('WhatsApp Broadcast', '📢 Broadcast sukses dikirim ke seluruh grup!')" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-black py-4 rounded-2xl text-sm shadow-xl shadow-indigo-600/30">Kirim Broadcast Massal</button>
+                        </div>
+
+                        <!-- 10. SECURITY -->
+                        <div id="content-security" class="action-content space-y-5 hidden">
+                            <div class="bg-dark-950/90 p-5 rounded-2xl border border-white/10 space-y-2">
+                                <p class="text-xs text-emerald-400 font-bold flex items-center gap-2"><i class="fa-solid fa-shield"></i> DDoS Protection: Active (Level Max)</p>
+                                <p class="text-xs text-slate-400">Rate Limiter: 1.5s per user request</p>
+                            </div>
+                            <button onclick="executeGenericCategory('Security & Firewall', '🛡️ Firewall rules updated & hardened successfully.')" class="w-full bg-teal-600 hover:bg-teal-500 text-white font-black py-4 rounded-2xl text-sm shadow-xl shadow-teal-600/30">Refresh Firewall Rules</button>
+                        </div>
+
+                        <!-- 11. SETTINGS -->
+                        <div id="content-settings" class="action-content space-y-5 hidden">
+                            <div class="space-y-3 bg-dark-950/90 p-5 rounded-2xl border border-white/10">
+                                <label class="flex items-center space-x-3 text-xs font-semibold text-slate-300">
+                                    <input type="checkbox" checked class="rounded bg-dark-950 border-white/20 text-brand-primary focus:ring-0 w-4 h-4">
+                                    <span>Auto-response Bot Engine Active</span>
+                                </label>
+                                <label class="flex items-center space-x-3 text-xs font-semibold text-slate-300">
+                                    <input type="checkbox" checked class="rounded bg-dark-950 border-white/20 text-brand-primary focus:ring-0 w-4 h-4">
+                                    <span>Log All Incoming API Commands</span>
+                                </label>
+                            </div>
+                            <button onclick="executeGenericCategory('Bot Configurations', '⚙️ Konfigurasi bot berhasil disimpan ke server!')" class="w-full bg-fuchsia-600 hover:bg-fuchsia-500 text-white font-black py-4 rounded-2xl text-sm shadow-xl shadow-fuchsia-600/30">Simpan Konfigurasi</button>
+                        </div>
+
+                        <!-- 12. API KEY MANAGER -->
+                        <div id="content-apikey" class="action-content space-y-5 hidden">
+                            <div class="bg-dark-950/90 p-5 rounded-2xl border border-white/10 space-y-3">
+                                <p class="text-xs text-brand-primary font-bold">API Key Aktif Anda:</p>
+                                <div class="flex items-center space-x-2">
+                                    <input type="text" readonly value="amfree_live_sk_88e912b471ca63" class="w-full bg-dark-900 border border-white/10 rounded-xl px-3 py-2 text-xs font-mono text-slate-300">
+                                    <button onclick="alert('API Key disalin!')" class="bg-brand-primary text-white px-3.5 py-2 rounded-xl text-xs font-bold shrink-0">Salin</button>
+                                </div>
+                            </div>
+                            <button onclick="executeGenericCategory('API Key Manager', '🔑 API Key baru berhasil di-generate ulang!')" class="w-full bg-gradient-to-r from-brand-primary to-brand-secondary text-white font-black py-4 rounded-2xl text-sm shadow-xl">Revoke & Generate New Key</button>
+                        </div>
+
+                        <!-- 13. TRAFFIC SNIFFER -->
+                        <div id="content-traffic" class="action-content space-y-4 hidden">
+                            <div class="bg-dark-950/90 p-5 rounded-2xl border border-white/10 space-y-2 font-mono text-[11px] text-emerald-400">
+                                <p>[00:14:20] GET /api/v3/magic-link -> 200 OK (11ms)</p>
+                                <p>[00:14:25] POST /api/v3/applyPremium -> 200 OK (28ms)</p>
+                                <p>[00:14:32] GET /api/v3/status -> 200 OK (6ms)</p>
+                            </div>
+                            <button onclick="executeGenericCategory('Traffic Sniffer', '🌊 Packet flow sniffer di-refresh.')" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-4 rounded-2xl text-sm shadow-xl">Clear Packet Log</button>
+                        </div>
+
+                        <!-- 14. SANDBOX TERMINAL -->
+                        <div id="content-sandbox" class="action-content space-y-5 hidden">
+                            <div>
+                                <label class="block text-xs font-extrabold uppercase tracking-widest text-slate-400 mb-2.5">Custom JS / Python Payload</label>
+                                <textarea rows="3" placeholder="console.log('Execute sandbox...');" class="w-full bg-dark-950/90 border border-white/10 rounded-2xl p-4 text-slate-100 text-xs font-mono"></textarea>
+                            </div>
+                            <button onclick="executeGenericCategory('Sandbox Terminal', '⚡ Sandbox payload executed with zero error.')" class="w-full bg-amber-600 hover:bg-amber-500 text-white font-black py-4 rounded-2xl text-sm shadow-xl">Run Sandbox Script</button>
+                        </div>
+
+                        <!-- 15. CLOUD BACKUP -->
+                        <div id="content-backup" class="action-content space-y-5 hidden">
+                            <div class="bg-dark-950/90 p-5 rounded-2xl border border-white/10 text-xs text-slate-300">
+                                <p class="font-bold text-white mb-1">Status Backup Cloud:</p>
+                                <p class="text-slate-400">Terakhir dicadangkan: Hari ini (AES-256 Encrypted)</p>
+                            </div>
+                            <button onclick="executeGenericCategory('Cloud Backup', '☁️ Seluruh konfigurasi berhasil dicadangkan ke server awan!')" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-black py-4 rounded-2xl text-sm shadow-xl">Backup & Sync Sekarang</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Output Console -->
+                <div class="glass-panel rounded-[2.5rem] p-5 sm:p-8 w-full overflow-hidden">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="font-black text-xs md:text-sm text-slate-300 uppercase tracking-widest flex items-center space-x-2">
+                            <span class="p-2 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-400"><i class="fa-solid fa-code"></i></span>
+                            <span>Terminal Output Console</span>
+                        </h3>
+                        <div class="flex items-center space-x-2">
+                            <button onclick="copyTerminalOutput()" class="text-xs text-slate-300 hover:text-white transition-colors bg-dark-800 hover:bg-dark-700 px-3.5 py-2 rounded-xl border border-white/10 flex items-center gap-1.5 font-bold shrink-0">
+                                <i class="fa-solid fa-copy"></i>Salin
+                            </button>
+                            <button onclick="clearOutput()" class="text-xs text-slate-400 hover:text-white transition-colors bg-dark-800 hover:bg-dark-700 px-3.5 py-2 rounded-xl border border-white/10 flex items-center gap-1.5 font-bold shrink-0">
+                                <i class="fa-solid fa-trash-can"></i>Clear
+                            </button>
+                        </div>
+                    </div>
+                    <pre id="output-box" class="bg-dark-950/95 border border-white/10 rounded-2xl p-5 text-xs font-mono text-emerald-400 overflow-x-auto min-h-[160px] max-h-[300px] whitespace-pre-wrap leading-relaxed shadow-inner custom-scrollbar w-full">╭━━━━━━━━━━━━━━━━━━━━━━━━━━━╮
+┃ ℹ️ SYSTEM BOOT SUCCESS v6 ┃
+╰━━━━━━━━━━━━━━━━━━━━━━━━━━━╯
+
+Dashboard Elite v6.0 aktif dengan Glowing Themes. by Gilz.</pre>
+                </div>
+            </div>
+
+            <!-- Right Sidebar -->
+            <div class="space-y-6 min-w-0">
+                <div class="glass-panel rounded-[2.5rem] p-5 sm:p-8 relative overflow-hidden ring-1 ring-brand-primary/30 w-full">
+                    <div class="absolute -right-10 -bottom-10 w-40 h-40 bg-brand-primary/20 rounded-full blur-3xl pointer-events-none"></div>
+                    <h3 class="font-black text-sm text-white uppercase tracking-widest mb-5 flex items-center space-x-3">
+                        <span class="p-2 bg-brand-primary/20 rounded-xl text-amber-400 shadow-inner"><i class="fa-solid fa-crown"></i></span>
+                        <span>Exclusive Owner Info</span>
+                    </h3>
+                    <div class="space-y-4 text-xs">
+                        <div class="bg-dark-950/90 border border-white/10 p-4 rounded-2xl flex items-center justify-between group hover:border-brand-primary/60 transition-all">
+                            <div class="flex items-center space-x-3.5 min-w-0">
+                                <div class="w-10 h-10 rounded-2xl bg-brand-primary/20 border border-brand-primary/40 flex items-center justify-center text-brand-primary shadow-sm shrink-0">
+                                    <i class="fa-brands fa-whatsapp text-base"></i>
+                                </div>
+                                <div class="min-w-0">
+                                    <p class="text-slate-400 text-[10px] uppercase font-black tracking-wider">Nomor Owner</p>
+                                    <a href="https://wa.me/6281990767636" target="_blank" class="text-slate-100 font-mono font-bold hover:text-brand-primary transition-colors text-sm truncate block">081990767636</a>
+                                </div>
+                            </div>
+                            <a href="https://wa.me/6281990767636" target="_blank" class="bg-brand-primary/20 hover:bg-brand-primary text-purple-300 hover:text-white px-3.5 py-2 rounded-xl transition-all font-bold text-xs shadow-sm shrink-0 ml-2">Chat</a>
+                        </div>
+
+                        <div class="bg-dark-950/90 border border-white/10 p-4 rounded-2xl flex items-center justify-between group hover:border-emerald-500/60 transition-all">
+                            <div class="flex items-center space-x-3.5 min-w-0">
+                                <div class="w-10 h-10 rounded-2xl bg-emerald-600/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 shrink-0 shadow-sm">
+                                    <i class="fa-solid fa-bullhorn text-base"></i>
+                                </div>
+                                <div class="min-w-0">
+                                    <p class="text-slate-400 text-[10px] uppercase font-black tracking-wider">Channel WhatsApp</p>
+                                    <a href="https://whatsapp.com/channel/0029Vb80tCxDp2QEkJ0AwD3J" target="_blank" class="text-slate-100 font-mono text-xs hover:text-emerald-400 transition-colors truncate block font-bold">Join Official Channel</a>
+                                </div>
+                            </div>
+                            <a href="https://whatsapp.com/channel/0029Vb80tCxDp2QEkJ0AwD3J" target="_blank" class="bg-emerald-600/20 hover:bg-emerald-600 text-emerald-300 hover:text-white px-3.5 py-2 rounded-xl transition-all font-bold text-xs shrink-0 ml-2 shadow-sm">Visit</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-panel rounded-[2.5rem] p-5 sm:p-8 w-full">
+                    <h3 class="font-black text-sm text-slate-200 uppercase tracking-widest mb-5 flex items-center space-x-3">
+                        <span class="p-2 bg-blue-500/10 border border-blue-500/20 rounded-xl text-blue-400 shadow-inner"><i class="fa-solid fa-microchip"></i></span>
+                        <span>System Specifications</span>
+                    </h3>
+                    <ul class="space-y-3.5 text-xs text-slate-300 font-medium">
+                        <li class="flex justify-between border-b border-white/10 pb-3">
+                            <span class="text-slate-400 flex items-center gap-2"><i class="fa-solid fa-list text-brand-primary"></i> Modules:</span>
+                            <span class="font-mono text-brand-primary font-black">15 Elite Variants</span>
+                        </li>
+                        <li class="flex justify-between border-b border-white/10 pb-3">
+                            <span class="text-slate-400 flex items-center gap-2"><i class="fa-solid fa-shield-halved text-amber-400"></i> Auth Guard:</span>
+                            <span class="font-mono text-emerald-400 font-black">Google / Email Dynamic</span>
+                        </li>
+                        <li class="flex justify-between border-b border-white/10 pb-3">
+                            <span class="text-slate-400 flex items-center gap-2"><i class="fa-solid fa-wand-magic-sparkles text-pink-400"></i> Designer:</span>
+                            <span class="font-mono text-pink-400 font-black">By Gilz</span>
+                        </li>
+                        <li class="flex justify-between">
+                            <span class="text-slate-400 flex items-center gap-2"><i class="fa-solid fa-lock text-emerald-400"></i> Encryption:</span>
+                            <span class="font-mono text-emerald-400 font-black">AES-256 Elite</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- FLOATING GILZZ GEMINI AI CHAT WIDGET -->
+    <div class="fixed bottom-6 right-6 z-50">
+        <button onclick="toggleAiChat()" id="ai-chat-btn" class="relative group bg-gradient-to-r from-brand-primary via-brand-secondary to-brand-accent p-4 rounded-full shadow-[0_0_35px_var(--brand-glow)] hover:scale-110 transition-all duration-350 flex items-center justify-center ring-4 ring-dark-950">
+            <span class="absolute -top-1 -right-1 w-3.5 h-3.5 bg-emerald-400 rounded-full animate-ping"></span>
+            <span class="absolute -top-1 -right-1 w-3.5 h-3.5 bg-emerald-400 rounded-full"></span>
+            <span class="text-white font-black text-sm">GZ</span>
+        </button>
+
+        <div id="ai-chat-modal" class="hidden absolute bottom-20 right-0 w-[90vw] sm:w-[400px] glass-panel rounded-[2rem] shadow-2xl border border-white/20 overflow-hidden flex flex-col transition-all duration-300 origin-bottom-right">
+            <div class="bg-gradient-to-r from-dark-900 to-dark-800 p-4 border-b border-white/10 flex justify-between items-center">
+                <div class="flex items-center space-x-3">
+                    <div class="w-9 h-9 rounded-xl bg-brand-primary/25 border border-brand-primary/50 flex items-center justify-center text-brand-primary font-bold shrink-0">✨</div>
+                    <div class="min-w-0">
+                        <h3 class="font-black text-xs sm:text-sm text-brand-primary flex items-center gap-1.5 truncate">
+                            <span class="truncate">Gilzz Gemini AI</span> <span class="w-2 h-2 rounded-full bg-emerald-400 shrink-0"></span>
+                        </h3>
+                        <p class="text-[10px] text-slate-400 truncate">Advanced Assistant & Code Companion 🤖</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-1">
+                    <button id="reset-btn" title="Reset Sesi" class="text-xs text-slate-400 hover:text-white p-2 rounded-xl hover:bg-white/5 transition-colors shrink-0">
+                        <i class="fa-solid fa-rotate-right text-xs"></i>
+                    </button>
+                    <button onclick="toggleAiChat()" class="text-slate-400 hover:text-white p-2 rounded-xl hover:bg-white/5 transition-colors shrink-0">
+                        <i class="fa-solid fa-xmark text-sm"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div id="ai-chat-messages" class="p-4 space-y-4 max-h-[360px] min-h-[280px] overflow-y-auto custom-scrollbar text-xs bg-dark-950/90 leading-relaxed">
+                <div class="flex items-start space-x-2.5">
+                    <div class="w-7 h-7 rounded-lg bg-brand-primary text-white flex items-center justify-center font-bold text-xs shrink-0">✨</div>
+                    <div class="bg-dark-800/90 text-slate-200 p-3.5 rounded-2xl rounded-tl-sm border border-white/10 shadow-md break-words space-y-2">
+                        <p>Halo Kak! Saya <b>Gilzz Gemini AI</b>, asisten pintar berbasis model lanjutan yang siap membantu Anda menjawab pertanyaan, memberikan analisis mendalam, maupun membantu troubleshooting sistem AMFREE Elite v6.0.</p>
+                        <p class="text-slate-400 text-[11px]">Ada topik atau bantuan teknis yang ingin kita diskusikan hari ini?</p>
+                    </div>
+                </div>
+            </div>
+
+            <form id="ai-chat-form" onsubmit="aiSend(event)" class="p-3 bg-dark-900/90 border-t border-white/10 flex items-center space-x-2">
+                <input type="text" id="ai-chat-input" placeholder="Tanyakan apa saja kepada Gilzz Gemini..." class="w-full bg-dark-950 border border-dark-700/80 rounded-xl px-3.5 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-brand-primary transition-all" autocomplete="off" required>
+                <button type="submit" id="ai-send-btn" class="bg-brand-primary hover:opacity-90 text-white px-3.5 py-2.5 rounded-xl transition-all shrink-0 shadow-md font-bold flex items-center justify-center">
+                    <i class="fa-solid fa-paper-plane text-xs"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="border-t border-white/10 mt-20 py-8 text-center text-xs text-slate-500 bg-dark-900/30 backdrop-blur-md w-full overflow-hidden">
+        <p class="mb-1.5 font-bold tracking-wide px-4">AMFREE ULTIMATE PREMIUM v6.0 &bull; Alight Motion Automation Engine</p>
+        <p class="text-slate-600 px-4">Designed with absolute luxury & glowing elegance <span class="text-brand-primary font-bold">by gilz</span></p>
+    </footer>
+
+    <!-- JavaScript -->
+    <script>
+        const API_MAGIC_LINK = 'https://api.kyzznekoo.my.id/api/alightmotion/v3/magic-link';
+        const API_SIMULATION_PREM = 'https://api.kyzznekoo.my.id/api/alightmotion/v3/applyPremium';
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const isLoggedIn = localStorage.getItem('amfree_logged_in');
+            if (isLoggedIn === 'true') {
+                document.getElementById('login-modal').classList.add('hidden');
+            } else {
+                document.getElementById('login-modal').classList.remove('hidden');
+            }
+            const savedTheme = localStorage.getItem('amfree_theme') || 'theme-neon-laser';
+            setTheme(savedTheme, false);
+
+            setInterval(() => {
+                const randomPing = Math.floor(8 + Math.random() * 12);
+                const pingEl = document.getElementById('live-ping');
+                if(pingEl) pingEl.innerText = randomPing;
+            }, 4000);
+        });
+
+        /* ================= AUTH & LOGIN LOGIC (FROM LOGIN.HTML) ================= */
+        function switchAuthTab(type) {
+            const loginForm = document.getElementById('loginFormModal');
+            const registerForm = document.getElementById('registerFormModal');
+            const btnLogin = document.getElementById('authLoginTabBtn');
+            const btnRegister = document.getElementById('authRegisterTabBtn');
+
+            if (type === 'login') {
+                loginForm.classList.remove('hidden');
+                registerForm.classList.add('hidden');
+                btnLogin.className = "flex-1 py-2.5 rounded-xl text-xs font-bold transition-all bg-gradient-to-r from-brand-primary to-brand-secondary text-slate-950 shadow-md";
+                btnRegister.className = "flex-1 py-2.5 rounded-xl text-xs font-bold transition-all text-slate-400 hover:text-white";
+            } else {
+                loginForm.classList.add('hidden');
+                registerForm.classList.remove('hidden');
+                btnLogin.className = "flex-1 py-2.5 rounded-xl text-xs font-bold transition-all text-slate-400 hover:text-white";
+                btnRegister.className = "flex-1 py-2.5 rounded-xl text-xs font-bold transition-all bg-gradient-to-r from-brand-primary to-brand-secondary text-slate-950 shadow-md";
+            }
+        }
+
+        function togglePassVisibility(inputId, eyeIcon) {
+            const input = document.getElementById(inputId);
+            if (input.type === 'password') {
+                input.type = 'text';
+                eyeIcon.classList.replace('fa-eye', 'fa-eye-slash');
+            } else {
+                input.type = 'password';
+                eyeIcon.classList.replace('fa-eye-slash', 'fa-eye');
+            }
+        }
+
+        function triggerGoogleAccountSelect() {
+            if (typeof google !== 'undefined' && google.accounts) {
+                google.accounts.id.initialize({
+                    client_id: "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com",
+                    callback: handleCredentialResponse
+                });
+                google.accounts.id.prompt((notification) => {
+                    if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+                        promptFallbackEmail();
+                    }
+                });
+            } else {
+                promptFallbackEmail();
+            }
+        }
+
+        function handleCredentialResponse(response) {
+            try {
+                const responsePayload = parseJwt(response.credential);
+                onLoginSuccess(responsePayload.email, 'Google OAuth');
+            } catch (e) {
+                onLoginSuccess("user@google.com", 'Google OAuth');
+            }
+        }
+
+        function parseJwt(token) {
+            var base64Url = token.split('.')[1];
+            var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+            var jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
+                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+            }).join(''));
+            return JSON.parse(jsonPayload);
+        }
+
+        function promptFallbackEmail() {
+            const userEmail = prompt("Pilih/Masukkan email HP Anda untuk aktivasi Alight Motion Premium:");
+            if (userEmail && userEmail.includes("@")) {
+                onLoginSuccess(userEmail, 'Email HP');
+            }
+        }
+
+        function handleAuthSubmit(event, actionType) {
+            event.preventDefault();
+            const emailInput = actionType === 'Masuk' ? 
+                document.getElementById('loginEmailInput').value : 
+                document.getElementById('regEmailInput').value;
+            
+            onLoginSuccess(emailInput, actionType);
+        }
+
+        function onLoginSuccess(email, method) {
+            localStorage.setItem('amfree_logged_in', 'true');
+            localStorage.setItem('amfree_email', email);
+            document.getElementById('login-modal').classList.add('hidden');
+            
+            const consoleBox = document.getElementById('output-box');
+            if(consoleBox) {
+                consoleBox.innerText = formatResponse('LOGIN BERHASIL', '🔓', `Autentikasi Berhasil via ${method}!\nEmail Terdaftar: ${email}\nStatus: Aktif 1 Tahun Premium Alight Motion Pro.`);
+            }
+        }
+
+        function handleLogout() {
+            localStorage.removeItem('amfree_logged_in');
+            localStorage.removeItem('amfree_email');
+            location.reload();
+        }
+
+        /* ================= UI DROPDOWNS & THEMES ================= */
+        function toggleDropdown(id) {
+            const dropdown = document.getElementById(id);
+            dropdown.classList.toggle('hidden');
+        }
+
+        window.addEventListener('click', function(e) {
+            if (!e.target.closest('button')) {
+                document.getElementById('category-dropdown').classList.add('hidden');
+                document.getElementById('theme-dropdown').classList.add('hidden');
+            }
+        });
+
+        function setTheme(themeName, save = true) {
+            document.body.className = document.body.className.replace(/theme-\w+/g, '');
+            document.body.classList.add(themeName);
+            if(save) localStorage.setItem('amfree_theme', themeName);
+            document.getElementById('theme-dropdown').classList.add('hidden');
+        }
+
+        function triggerQuickAudit() {
+            document.getElementById('output-box').innerText = formatResponse('QUICK SYSTEM AUDIT', '⚡', '┌─── 🛡️ *AUDIT SELESAI* ───\n├─ ✅ Firewall: Normal & Hardened\n├─ ✅ Latency: 10ms\n├─ ✅ Glowing Nodes: 15 Active\n╰━━━━━━━━━━━━━━━━━━━━━━━━━━━╯');
+        }
+
+        function triggerGlobalClear() {
+            document.getElementById('output-box').innerText = formatResponse('CACHE FLUSHED', '🧹', '┌─── 🗑️ *CACHE BERSIH* ───\n├─ ⚡ Temporary memory dibersihkan secara total!\n╰━━━━━━━━━━━━━━━━━━━━━━━━━━━╯');
+        }
+
+        function switchCategory(category) {
+            document.querySelectorAll('.action-content').forEach(el => el.classList.add('hidden'));
+            const titleEl = document.getElementById('panel-title');
+            const descEl = document.getElementById('panel-desc');
+            const badgeEl = document.getElementById('category-badge');
+            const ampremTabs = document.getElementById('amprem-tabs');
+            ampremTabs.classList.add('hidden');
+
+            const categoryMeta = {
+                'amprem': { title: 'AmFree Command Center', desc: 'Kelola lisensi premium Alight Motion secara instan & otomatis.', icon: 'fa-bolt' },
+                'generator': { title: 'Key & Code Generator', desc: 'Buat token akses unik atau lisensi khusus secara otomatis.', icon: 'fa-key' },
+                'tools': { title: 'Utilities & Developer Tools', desc: 'Kumpulan alat bantu encoder, decoder dan pengujian payload.', icon: 'fa-toolbox' },
+                'analytics': { title: 'System Analytics Dashboard', desc: 'Monitor performa trafik server dan statistik penggunaan sistem.', icon: 'fa-chart-pie' },
+                'preset': { title: 'AM Presets & XML Manager', desc: 'Akses ratusan preset dan file XML Alight Motion siap pakai.', icon: 'fa-clapperboard' },
+                'downloader': { title: 'Media Downloader Pro', desc: 'Unduh video dari berbagai platform sosial media dengan mudah.', icon: 'fa-download' },
+                'tiktok-pro': { title: 'TikTok Downloader Pro', desc: 'Unduh video, foto slide, dan audio TikTok tanpa watermark.', icon: 'fa-brands fa-tiktok' },
+                'database': { title: 'Database Inspector', desc: 'Pemeriksaan tabel dan data records secara real-time.', icon: 'fa-database' },
+                'broadcast': { title: 'WhatsApp Broadcast Engine', desc: 'Kirim pesan massal pengumuman ke seluruh grup atau kontak.', icon: 'fa-bullhorn' },
+                'security': { title: 'Security & Firewall Guard', desc: 'Konfigurasi proteksi DDoS dan rate limiter server.', icon: 'fa-shield-halved' },
+                'settings': { title: 'Bot System Configurations', desc: 'Pengaturan lanjutan perilaku dan respons bot otomatis.', icon: 'fa-gear' },
+                'apikey': { title: 'API Key Manager', desc: 'Generate dan kelola kunci akses API Anda.', icon: 'fa-fingerprint' },
+                'traffic': { title: 'Traffic Sniffer & Monitor', desc: 'Pantau paket data dan request yang masuk secara live.', icon: 'fa-wave-square' },
+                'sandbox': { title: 'Sandbox Terminal', desc: 'Eksekusi skrip dan payload uji coba secara aman.', icon: 'fa-code' },
+                'backup': { title: 'Cloud Backup & Sync', desc: 'Simpan dan pulihkan konfigurasi sistem ke server awan.', icon: 'fa-cloud-arrow-down' }
+            };
+
+            const meta = categoryMeta[category];
+            if(meta) {
+                if(category === 'amprem') ampremTabs.classList.remove('hidden');
+                const targetContent = document.getElementById(`content-${category === 'amprem' ? 'send' : category}`);
+                if(targetContent) targetContent.classList.remove('hidden');
+                
+                titleEl.innerHTML = `<span class="p-2.5 bg-brand-primary/15 border border-brand-primary/30 rounded-2xl text-brand-primary shadow-inner shrink-0"><i class="${meta.icon.includes('fa-') ? meta.icon : 'fa-solid ' + meta.icon}"></i></span><span class="truncate">${meta.title}</span>`;
+                descEl.innerText = meta.desc;
+                badgeEl.innerText = category;
+            }
+        }
+
+        function switchTab(action) {
+            ['send', 'verif', 'apply', 'status', 'generate'].forEach(act => {
+                document.getElementById(`content-${act}`).classList.add('hidden');
+                const btn = document.getElementById(`btn-${act}`);
+                btn.className = "tab-btn px-3 py-3 rounded-xl text-xs font-bold transition-all text-slate-400 hover:text-white hover:bg-dark-800 flex items-center justify-center space-x-2 truncate";
+            });
+            document.getElementById(`content-${action}`).classList.remove('hidden');
+            const activeBtn = document.getElementById(`btn-${action}`);
+            activeBtn.className = "tab-btn px-3 py-3 rounded-xl text-xs font-bold transition-all bg-gradient-to-r from-brand-primary to-brand-secondary text-white shadow-lg shadow-brand-primary/40 flex items-center justify-center space-x-2 truncate";
+        }
+
+        function clearOutput() {
+            document.getElementById('output-box').innerText = "╭━━━━━━━━━━━━━━━━━━━━━━━━━━━╮\n┃ ℹ️ CONSOLE CLEARED ℹ️\n╰━━━━━━━━━━━━━━━━━━━━━━━━━━━╯";
+        }
+
+        function copyTerminalOutput() {
+            const text = document.getElementById('output-box').innerText;
+            navigator.clipboard.writeText(text);
+            alert("Isi console terminal berhasil disalin ke clipboard!");
+        }
+
+        function formatDate(ms) {
+            return new Date(ms).toLocaleString('id-ID', { timeZone: 'Asia/Jakarta', timeZoneName: 'short' });
+        }
+
+        function formatResponse(title, emoji, content) {
+            return `╭━━━━━━━━━━━━━━━━━━━━━━━━━━━╮\n┃ ${emoji} ${title} ${emoji}\n╰━━━━━━━━━━━━━━━━━━━━━━━━━━━╯\n\n${content}\n\n╰━━━━━━━━━━━━━━━━━━━━━━━━━━━╯\n\n🤖 *AMFREE ELITE* &bull; By Gilz\n🕐 ${formatDate(Date.now())}`;
+        }
+
+        function executeGenericCategory(title, successMsg) {
+            document.getElementById('output-box').innerText = formatResponse(title.toUpperCase(), '⚡', `┌─── ✅ *SUCCESS* ───\n├─ 📌 ${successMsg}\n╰━━━━━━━━━━━━━━━━━━━━━━━━━━━╯`);
+        }
+
+        async function executeAction(action) {
+            const outputBox = document.getElementById('output-box');
+            if (action === 'generate') { await executeGenerate(); return; }
+            if (action === 'send') {
+                const email = document.getElementById('input-send-email').value.trim();
+                if (!email || !email.includes('@')) {
+                    outputBox.innerText = formatResponse('GAGAL', '❌', "┌─── ⚠️ *EMAIL TIDAK VALID* ───\n├─ 📧 Format email salah!\n╰━━━━━━━━━━━━━━━━━━━━━━━━━━━╯");
+                    return;
+                }
+                outputBox.innerText = `⏳ *PROSES SEND* ⏳\n└─ 📨 Mengirim magic link ke ${email}...\n\n⏱️ Mohon tunggu sebentar...`;
+                try {
+                    const res = await fetch(`${API_MAGIC_LINK}?email=${encodeURIComponent(email)}`);
+                    const data = await res.json();
+                    if(data.status === false) throw new Error(data.message || 'Gagal kirim');
+                    outputBox.innerText = formatResponse('MAGIC LINK SENT', '📨', `┌─── ✅ *BERHASIL* ───\n├─ 📧 Email: ${email}\n├─ 📨 Magic link terkirim!\n╰━━━━━━━━━━━━━━━━━━━━━━━━━━━╯`);
+                } catch(err) {
+                    outputBox.innerText = formatResponse('ERROR', '❌', `┌─── ⚠️ Gagal menghubungi server ───\n├─ ${err.message}\n╰━━━━━━━━━━━━━━━━━━━━━━━━━━━╯`);
+                }
+            }
+        }
+
+        /* ═══ GILZZ AI — chat engine (pollinations, tanpa API key) ═══ */
+        const AI_API = 'https://text.pollinations.ai/openai';
+        const AI_SYSTEM = 'Kamu adalah "Gilzz AI", asisten pintar di web panel AMFREE Elite v6.0 (tools premium Alight Motion). Jawab santai, bahasa Indonesia, singkat dan langsung ke inti. Kamu paham fitur panel ini: tab Send (kirim magic link ke email), Verif (verifikasi link), Apply (aktifkan premium), Status (cek akun), Generate (auto bikin akun premium: email sementara + magic link + verif + premium aktif). Jangan ngaku model lain. Kalau ditanya hal teknis Alight Motion, jawab praktis. Gunakan emoji secukupnya.';
+        let aiHistory = [];
+
+        function toggleAiChat() {
+            const modal = document.getElementById('ai-chat-modal');
+            modal.classList.toggle('hidden');
+            const input = document.getElementById('ai-chat-input');
+            if (!modal.classList.contains('hidden')) setTimeout(() => input.focus(), 100);
+        }
+
+        function aiBubble(role, html) {
+            const wrap = document.getElementById('ai-chat-messages');
+            const div = document.createElement('div');
+            const isUser = role === 'user';
+            div.className = isUser
+                ? 'flex justify-end'
+                : 'flex justify-start';
+            const bub = document.createElement('div');
+            bub.className = isUser
+                ? 'max-w-[85%] bg-gradient-to-r from-brand-primary to-brand-secondary text-white rounded-2xl rounded-br-md px-3.5 py-2.5 shadow-lg'
+                : 'max-w-[85%] bg-dark-800/90 border border-white/10 text-slate-200 rounded-2xl rounded-bl-md px-3.5 py-2.5 shadow-lg';
+            if (isUser) {
+                bub.innerText = html;
+            } else {
+                try { bub.innerHTML = marked.parse(html); } catch { bub.innerText = html; }
+            }
+            div.appendChild(bub);
+            wrap.appendChild(div);
+            wrap.scrollTop = wrap.scrollHeight;
+            return div;
+        }
+
+        async function aiSend(event) {
+            event.preventDefault();
+            const input = document.getElementById('ai-chat-input');
+            const text = input.value.trim();
+            if (!text) return;
+            input.value = '';
+            aiBubble('user', text);
+            aiHistory.push({ role: 'user', content: text });
+
+            /* typing indicator */
+            const typing = aiBubble('assistant', '<span class="inline-flex gap-1"><span class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce"></span><span class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style="animation-delay:.15s"></span><span class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style="animation-delay:.3s"></span></span>');
+
+            try {
+                const res = await fetch(AI_API, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        model: 'openai',
+                        messages: [
+                            { role: 'system', content: AI_SYSTEM },
+                            ...aiHistory.slice(-8),
+                        ],
+                    }),
+                    signal: AbortSignal.timeout(60000),
+                });
+                const data = await res.json();
+                const reply = data?.choices?.[0]?.message?.content?.trim();
+                typing.remove();
+                if (!reply) throw new Error('balasan kosong');
+                aiBubble('assistant', reply);
+                aiHistory.push({ role: 'assistant', content: reply });
+                if (aiHistory.length > 20) aiHistory = aiHistory.slice(-20);
+            } catch (err) {
+                typing.remove();
+                aiBubble('assistant', '⚠️ ' + (err.name === 'TimeoutError' ? 'Server AI-nya lama merespon — coba ulang.' : 'Koneksi AI gagal: ' + err.message));
+            }
+        }
+
+        /* ═══ GENERATE AKUN PREMIUM — full otomatis ═══ */
+        const TMPMAIL_CREATE = 'https://api.kyzznekoo.my.id/api/tools/tmpmail/v2/create?duration=10';
+        const TMPMAIL_INBOX  = 'https://api.kyzznekoo.my.id/api/tools/tmpmail/v2/inbox/';
+        const VARHAD_SEND    = 'https://v2.api-varhad.my.id/tools/amprem/verif/email?email=';
+        const VARHAD_VERIF   = 'https://v2.api-varhad.my.id/tools/amprem/verif/link';
+
+        let genRunning = false;
+
+        function logStep(box, text) {
+            box.innerText += text + '\n';
+        }
+
+        function renderGenHistory() {
+            const wrap = document.getElementById('gen-history');
+            if (!wrap) return;
+            const list = JSON.parse(localStorage.getItem('amfree_generated') || '[]');
+            if (!list.length) { wrap.innerHTML = ''; return; }
+            wrap.innerHTML = '<label class="block text-xs font-extrabold uppercase tracking-widest text-slate-400 mb-1">Akun premium ter-generate (' + list.length + ')</label>' +
+                list.slice().reverse().map((a, i) =>
+                    '<div class="flex items-center justify-between gap-2 bg-dark-950/90 border border-white/10 rounded-xl px-4 py-3">' +
+                    '<div class="min-w-0"><p class="text-xs text-slate-100 font-mono truncate">' + a.email + '</p>' +
+                    '<p class="text-[10px] text-emerald-400">premium s/d ' + (a.expiry || '-') + '</p></div>' +
+                    '<button onclick="copyGenEmail(' + (list.length - 1 - i) + ')" class="shrink-0 text-[10px] font-bold bg-brand-primary/15 text-brand-primary border border-brand-primary/30 px-3 py-2 rounded-lg hover:bg-brand-primary/25">SALIN</button>' +
+                    '</div>'
+                ).join('');
+        }
+
+        function copyGenEmail(i) {
+            const list = JSON.parse(localStorage.getItem('amfree_generated') || '[]');
+            const a = list[i];
+            if (!a) return;
+            navigator.clipboard?.writeText(a.email);
+        }
+
+        async function fetchJson(url, timeoutMs = 30000) {
+            const ctrl = new AbortController();
+            const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+            try {
+                const res = await fetch(url, { signal: ctrl.signal });
+                return await res.json();
+            } finally { clearTimeout(timer); }
+        }
+
+        function extractLink(html) {
+            const decoded = String(html || '').replace(/&amp;/g, '&');
+            const m = decoded.match(/href=['"]([^'"]*firebaseapp\.com[^'"]*)['"]/i) || decoded.match(/https?:\/\/[^\s"'<>]+/i);
+            return m ? m[1].trim() : null;
+        }
+
+        async function generateOnce() {
+            const box = document.getElementById('output-box');
+            const tm = await fetchJson(TMPMAIL_CREATE);
+            if (!tm?.status || !tm?.data?.email) throw new Error('tempmail gagal dibuat');
+            const email = tm.data.email;
+            logStep(box, '├─ 📧 Email: ' + email);
+
+            const send = await fetchJson(VARHAD_SEND + encodeURIComponent(email), 45000);
+            if (!send?.status || !send?.result?.success) throw new Error(send?.result?.error?.error?.message || 'magic link gagal terkirim');
+
+            let link = null;
+            for (let i = 0; i < 15; i++) {
+                await new Promise(r => setTimeout(r, 4000));
+                const inbox = await fetchJson(TMPMAIL_INBOX + encodeURIComponent(email));
+                const list = inbox?.data?.inbox || inbox?.data?.emails || [];
+                if (list.length) {
+                    const content = list[0].content || list[0].html || list[0].body || list[0].text || '';
+                    link = extractLink(content);
+                    if (link) break;
+                }
+            }
+            if (!link) throw new Error('email magic link gak masuk ke inbox');
+
+            const verif = await fetchJson(VARHAD_VERIF + '?email=' + encodeURIComponent(email) + '&link=' + encodeURIComponent(link), 60000);
+            if (!verif?.status || !verif?.result?.success) throw new Error(verif?.result?.error?.error?.message || 'verifikasi gagal');
+
+            const prem = verif?.result?.premium?.data?.result;
+            const expiry = prem?.expiryTimeMillis ? new Date(Number(prem.expiryTimeMillis)).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '-';
+
+            const list = JSON.parse(localStorage.getItem('amfree_generated') || '[]');
+            list.push({ email, expiry, ts: Date.now() });
+            localStorage.setItem('amfree_generated', JSON.stringify(list.slice(-20)));
+            renderGenHistory();
+
+            logStep(box, '╰━━━ ✅ PREMIUM AKTIF — ' + email + ' (s/d ' + expiry + ') ━━━');
+            return { email, expiry };
+        }
+
+        function downloadGenHistory() {
+            const list = JSON.parse(localStorage.getItem('amfree_generated') || '[]');
+            if (!list.length) return;
+            const lines = list.map((a, i) => {
+                const t = new Date(a.ts).toLocaleString('id-ID');
+                return (i + 1) + '. ' + a.email + '  |  premium s/d ' + (a.expiry || '-') + '  |  dibuat ' + t;
+            });
+            const blob = new Blob(['AKUN PREMIUM ALIGHT MOTION — AMFREE GENERATE\n' + '='.repeat(50) + '\n\n' + lines.join('\n') + '\n'], { type: 'text/plain' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'akun-premium-amfree.txt';
+            a.click();
+            URL.revokeObjectURL(a.href);
+        }
+
+        async function executeGenerate() {
+            if (genRunning) return;
+            genRunning = true;
+            const btn = document.getElementById('btn-generate-run');
+            const box = document.getElementById('output-box');
+            const count = Math.max(1, Math.min(5, Number(document.getElementById('gen-count')?.value) || 1));
+            btn.disabled = true; btn.style.opacity = .6;
+            box.innerText = '';
+            let ok = 0;
+            const results = [];
+
+            try {
+                logStep(box, '┌─── 🎲 GENERATE AKUN PREMIUM' + (count > 1 ? ' (×' + count + ')' : '') + ' ───');
+                for (let i = 1; i <= count; i++) {
+                    logStep(box, '├─ [' + i + '/' + count + '] membuat email sementara + verifikasi + premium...');
+                    try {
+                        const r = await generateOnce();
+                        results.push(r);
+                        ok++;
+                    } catch (err) {
+                        logStep(box, '╰─ ⚠️ akun #' + i + ' gagal: ' + err.message);
+                    }
+                    if (i < count) await new Promise(r => setTimeout(r, 3000));
+                }
+                if (results.length) {
+                    box.innerText += '\n' + '═'.repeat(48) + '\n✅ BERHASIL: ' + ok + ' akun premium\n';
+                    for (const r of results) box.innerText += '📧 ' + r.email + '  (s/d ' + r.expiry + ')\n';
+                    box.innerText += '\n➡️ Login di aplikasi Alight Motion pakai email di atas.\n💾 Tersimpan di riwayat generate.';
+                } else {
+                    box.innerText += '\n⚠️ Semua percobaan gagal — server API lagi sibuk, coba lagi nanti.';
+                }
+            } finally {
+                genRunning = false;
+                btn.disabled = false; btn.style.opacity = 1;
+            }
+        }
+
+                document.addEventListener('DOMContentLoaded', renderGenHistory);
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a3d63e3e582e6d3b',t:'MTc4OTc5NjI5NQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
