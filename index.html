@@ -115,6 +115,9 @@
     <!-- Hidden Google Official One-Tap Element -->
     <div id="g_id_onload" data-auto_prompt="false"></div>
 
+    <!-- UPDATE BANNER -->
+    <div id="upd-banner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:99;background:linear-gradient(90deg,#22c55e,#16a34a);color:#fff;font:bold 11px sans-serif;text-align:center;padding:8px">✅ UPDATE TERBARU TERPASANG — GILZ-HUB v2.2 · 108 fitur · Bot Control + Music + Brat Video</div>
+
     <!-- LOGIN MODAL (Disesuaikan dengan UI/UX login.html) -->
     <div id="login-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-dark-950/95 backdrop-blur-3xl px-4 transition-all duration-700">
         <div class="glass-panel scanline rounded-[2.5rem] p-6 sm:p-8 max-w-md w-full relative ring-2 ring-brand-primary/40 shadow-[0_0_120px_var(--brand-glow)] overflow-hidden">
@@ -902,7 +905,7 @@ Dashboard Elite v6.0 aktif dengan Glowing Themes. by Gilz.</pre>
 
     <!-- Footer -->
     <footer class="border-t border-white/10 mt-20 py-8 text-center text-xs text-slate-500 bg-dark-900/30 backdrop-blur-md w-full overflow-hidden">
-        <p class="mb-1.5 font-bold tracking-wide px-4">AMFREE ULTIMATE PREMIUM v6.0 &bull; Alight Motion Automation Engine <span class="text-emerald-400">[GILZ-HUB v2.1]</span></p>
+        <p class="mb-1.5 font-bold tracking-wide px-4">AMFREE ULTIMATE PREMIUM v6.0 &bull; Alight Motion Automation Engine <span class="text-emerald-400">[GILZ-HUB v2.2 (108 fitur)]</span></p>
         <p class="text-slate-600 px-4">Designed with absolute luxury & glowing elegance <span class="text-brand-primary font-bold">by gilz</span></p>
     </footer>
 
@@ -912,6 +915,17 @@ Dashboard Elite v6.0 aktif dengan Glowing Themes. by Gilz.</pre>
         const API_SIMULATION_PREM = 'https://api.kyzznekoo.my.id/api/alightmotion/v3/applyPremium';
 
         window.addEventListener('DOMContentLoaded', () => {
+            /* banner update — muncul kalau baru dapet versi beda */
+            try {
+                const v = 'v2.2';
+                if (localStorage.getItem('gilz_ver') !== v) {
+                    localStorage.setItem('gilz_ver', v);
+                    const b = document.getElementById('upd-banner');
+                    b.style.display = 'block';
+                    setTimeout(() => { b.style.display = 'none'; }, 10000);
+                }
+            } catch {}
+
             /* google login: init kalau client id terpasang (script.js) */
             try {
                 if (gilzGoogleCid()) {
