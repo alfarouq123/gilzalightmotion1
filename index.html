@@ -1795,8 +1795,9 @@ Dashboard Elite v6.0 aktif dengan Glowing Themes. by Gilz.</pre>
           const res = await fetch(base + path, {
             ...opts,
             headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + wbToken(), ...(opts.headers || {}) },
-            signal: AbortSignal.timeout(30000),
+            signal: AbortSignal.timeout(opts.timeoutMs || 15000),
           });
+          if (res.status === 401) return { ok: false, error: 'token salah' };
           return await res.json().catch(() => ({ ok: false, error: 'respon gak valid (tunnel mati?)' }));
         }
         let wbLogSrc = null;
@@ -1963,11 +1964,42 @@ Dashboard Elite v6.0 aktif dengan Glowing Themes. by Gilz.</pre>
             { id:'bc-connect', name:'Hubungkan ke Bot', icon:'fa-plug', desc:'Paste URL tunnel + token (dari ★webbridge on).', color:'lime',
               fields:[{k:'url',label:'URL tunnel',ph:'https://xxx.trycloudflare.com'},{k:'token',label:'Token webbridge',ph:'abcdef123...'}],
               run: async v => {
-                localStorage.setItem('wb_url', v.url.replace(/\/$/, ''));
-                localStorage.setItem('wb_token', v.token);
-                const r = await wbFetch('/ping');
-                if (!r?.ok) throw new Error('gak nyambung — cek URL/tunnel');
-                return { type:'text', title:'✅ Terhubung', text:`Bot: ${r.name}\n\nSekarang fitur Log Live, Status, Remote, dan RCH bisa dipakai. Tersimpan di browser ini.` };
+                let url = String(v.url || '').trim().replace(/\/+$/, '');
+                if (!url) throw new Error('URL kosong');
+                if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+                /* tunnel domain dikenal otomatis di-upgrade ke https (http diblokir browser) */
+                if (/^http:\/\/[a-z0-9-]+\.(trycloudflare\.com|ngrok-free\.app|ngrok\.io|tryngrok\.com|loca\.lt)/i.test(url)) {
+                  url = url.replace(/^http:/i, 'https:');
+                }
+                if (!/^https?:\/\/[a-z0-9.:-]+/i.test(url)) throw new Error('format URL aneh — contoh: https://xxx.trycloudflare.com');
+                localStorage.setItem('wb_url', url);
+                localStorage.setItem('wb_token', String(v.token || '').trim());
+
+                let r = null;
+                try {
+                  r = await wbFetch('/ping');
+                } catch (e) {
+                  const msg = String(e.message || '');
+                  let hint = '';
+                  if (/Failed to fetch|NetworkError|Load failed/i.test(msg)) {
+                    if (url.startsWith('http://') && /^http:\/\/[0-9]/.test(url)) {
+                      hint = 'URL http:// IP:port DIBLOKIR browser (halaman ini https — mixed content). Solusi: pakai tunnel https (cloudflared/ngrok), bukan IP langsung.';
+                    } else if (url.startsWith('http://')) {
+                      hint = 'URL masih http:// — browser blokir. Pakai https:// (tunnel cloudflared/ngrok otomatis https).';
+                    } else {
+                      hint = 'Server gak kejangkau. Cek 3 hal ini:\n1. ★webbridge on UDAH dijalankan di bot?\n2. Tunnel MASIH jalan? (jendela cloudflared/ngrok jangan ditutup)\n3. URL-nya bener? harusnya https://xxx.trycloudflare.com (copy penuh dari terminal)';
+                    }
+                  } else if (/timed? ?out|abort/i.test(msg)) {
+                    hint = 'Timeout — tunnel nyambung tapi bot gak balas. Kayaknya webbridge-nya mati (bot restart?). Jalankan lagi ★webbridge on.';
+                  } else {
+                    hint = msg;
+                  }
+                  glog('error', 'connect ' + url + ' → ' + msg);
+                  throw new Error(hint);
+                }
+                if (r?.error === 'token salah' || r?.ok === false) throw new Error('Tunnel nyambung tapi TOKEN salah — ketik ★webbridge token di bot buat liat token yang bener.');
+                if (!r?.ok) throw new Error('respon aneh dari server: ' + JSON.stringify(r).slice(0, 120));
+                return { type:'text', title:'✅ TERHUBUNG: ' + (r.name || 'bot'), text:`Bot: ${r.name}\nURL: ${url}\n\nFitur Log Live, Status, Remote, dan RCH siap dipakai. Tersimpan di browser ini.` };
               } },
             { id:'bc-log', name:'Log Live (Panel Ptero)', icon:'fa-terminal', desc:'Console log bot realtime, kayak pterodactyl.', color:'lime', noFields:true,
               run: async () => {
