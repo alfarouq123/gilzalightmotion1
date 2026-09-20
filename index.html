@@ -168,7 +168,7 @@
     <div id="g_id_onload" data-auto_prompt="false"></div>
 
     <!-- UPDATE BANNER -->
-    <div id="upd-banner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:99;background:linear-gradient(90deg,#22c55e,#16a34a);color:#fff;font:bold 11px sans-serif;text-align:center;padding:8px">✅ UPDATE TERBARU TERPASANG — GILZ-HUB v2.2.3 · Log Live mode polling (stabil lewat tunnel)</div>
+    <div id="upd-banner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:99;background:linear-gradient(90deg,#22c55e,#16a34a);color:#fff;font:bold 11px sans-serif;text-align:center;padding:8px">✅ UPDATE TERBARU TERPASANG — GILZ-HUB v2.2.4 · AI ungu + gear pengaturan + engine GPT-3.5 baru</div>
 
     <!-- LOGIN MODAL (Disesuaikan dengan UI/UX login.html) -->
     <div id="login-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-dark-950/95 backdrop-blur-3xl px-4 transition-all duration-700">
@@ -917,28 +917,28 @@ Dashboard Elite v6.0 aktif dengan Glowing Themes. by Gilz.</pre>
         </button>
     </div>
 
-    <!-- FLOATING GILZZ GEMINI AI CHAT WIDGET -->
+    <!-- FLOATING GILZZ GEMINI AI CHAT WIDGET (ungu permanen — gak ikut tema) -->
     <div class="fixed bottom-6 right-6 z-50">
-        <button onclick="toggleAiChat()" id="ai-chat-btn" class="relative group bg-gradient-to-r from-brand-primary via-brand-secondary to-brand-accent p-4 rounded-full shadow-[0_0_35px_var(--brand-glow)] hover:scale-110 transition-all duration-350 flex items-center justify-center ring-4 ring-dark-950">
-            <span class="absolute -top-1 -right-1 w-3.5 h-3.5 bg-emerald-400 rounded-full animate-ping"></span>
-            <span class="absolute -top-1 -right-1 w-3.5 h-3.5 bg-emerald-400 rounded-full"></span>
+        <button onclick="toggleAiChat()" id="ai-chat-btn" class="relative group bg-gradient-to-br from-violet-500 via-purple-600 to-fuchsia-500 p-4 rounded-full shadow-[0_0_35px_rgba(168,85,247,0.8)] hover:scale-110 transition-all duration-350 flex items-center justify-center ring-4 ring-dark-950">
+            <span class="absolute -top-1 -right-1 w-3.5 h-3.5 bg-fuchsia-300 rounded-full animate-ping"></span>
+            <span class="absolute -top-1 -right-1 w-3.5 h-3.5 bg-fuchsia-300 rounded-full"></span>
             <span class="text-white font-black text-sm">GZ</span>
         </button>
 
-        <div id="ai-chat-modal" class="hidden absolute bottom-20 right-0 w-[90vw] sm:w-[400px] glass-panel rounded-[2rem] shadow-2xl border border-white/20 overflow-hidden flex flex-col transition-all duration-300 origin-bottom-right">
-            <div class="bg-gradient-to-r from-dark-900 to-dark-800 p-4 border-b border-white/10 flex justify-between items-center">
+        <div id="ai-chat-modal" class="hidden absolute bottom-20 right-0 w-[90vw] sm:w-[400px] glass-panel rounded-[2rem] shadow-2xl border border-purple-500/25 overflow-hidden flex flex-col transition-all duration-300 origin-bottom-right">
+            <div class="bg-gradient-to-r from-purple-950 via-violet-900/70 to-dark-900 p-4 border-b border-purple-500/30 flex justify-between items-center">
                 <div class="flex items-center space-x-3">
-                    <div class="w-9 h-9 rounded-xl bg-brand-primary/25 border border-brand-primary/50 flex items-center justify-center text-brand-primary font-bold shrink-0">✨</div>
+                    <div class="w-9 h-9 rounded-xl bg-violet-500/25 border border-violet-400/50 flex items-center justify-center text-violet-300 font-bold shrink-0">✨</div>
                     <div class="min-w-0">
-                        <h3 class="font-black text-xs sm:text-sm text-brand-primary flex items-center gap-1.5 truncate">
-                            <span class="truncate">Gilzz Gemini AI</span> <span class="w-2 h-2 rounded-full bg-emerald-400 shrink-0"></span>
+                        <h3 class="font-black text-xs sm:text-sm text-violet-300 flex items-center gap-1.5 truncate">
+                            <span class="truncate">Gilzz Gemini AI</span> <span class="w-2 h-2 rounded-full bg-fuchsia-400 shrink-0"></span>
                         </h3>
                         <p class="text-[10px] text-slate-400 truncate">Advanced Assistant & Code Companion 🤖</p>
                     </div>
                 </div>
                 <div class="flex items-center space-x-1">
-                    <button id="reset-btn" title="Reset Sesi" class="text-xs text-slate-400 hover:text-white p-2 rounded-xl hover:bg-white/5 transition-colors shrink-0">
-                        <i class="fa-solid fa-rotate-right text-xs"></i>
+                    <button onclick="toggleAiSettings()" id="ai-gear-btn" title="Pengaturan AI (model & persona)" class="text-xs text-slate-300 hover:text-violet-300 p-2 rounded-xl hover:bg-violet-500/15 transition-colors shrink-0">
+                        <i class="fa-solid fa-gear text-sm"></i>
                     </button>
                     <button onclick="toggleAiChat()" class="text-slate-400 hover:text-white p-2 rounded-xl hover:bg-white/5 transition-colors shrink-0">
                         <i class="fa-solid fa-xmark text-sm"></i>
@@ -946,9 +946,36 @@ Dashboard Elite v6.0 aktif dengan Glowing Themes. by Gilz.</pre>
                 </div>
             </div>
 
+            <!-- ⚙️ PANEL PENGATURAN (tombol gear) -->
+            <div id="ai-settings" class="hidden p-4 bg-dark-950/95 border-b border-purple-500/20 space-y-3 text-xs">
+                <p class="font-black uppercase tracking-widest text-violet-300 text-[10px]">⚙️ Pengaturan AI</p>
+                <label class="block">
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Mesin AI</span>
+                    <select id="ai-set-model" onchange="aiSaveSetting('model', this.value)" class="w-full mt-1 bg-dark-900 border border-dark-700 rounded-xl px-3 py-2 text-slate-100 focus:outline-none focus:border-violet-400">
+                        <option value="nexray">GPT-3.5 — Andal (default)</option>
+                        <option value="pollinations">Pollinations — Cepat</option>
+                        <option value="simisimi">SimSimi — mode nakal 😈</option>
+                    </select>
+                </label>
+                <label class="block">
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Persona</span>
+                    <select id="ai-set-persona" onchange="aiSaveSetting('persona', this.value)" class="w-full mt-1 bg-dark-900 border border-dark-700 rounded-xl px-3 py-2 text-slate-100 focus:outline-none focus:border-violet-400">
+                        <option value="default">Asisten santai (default)</option>
+                        <option value="gaul">Abang paling gaul</option>
+                        <option value="sarkas">Nyinyir dulu, jawab kemudian</option>
+                        <option value="pro">Profesional & terstruktur</option>
+                        <option value="kode">Jago ngoding</option>
+                    </select>
+                </label>
+                <div class="flex items-center justify-between gap-2 pt-1">
+                    <button onclick="aiClearHistory()" class="bg-rose-500/15 text-rose-300 border border-rose-500/30 font-bold px-3 py-2 rounded-xl hover:bg-rose-500/25 transition-all">🗑️ Hapus Riwayat</button>
+                    <button onclick="toggleAiSettings()" class="bg-violet-500/15 text-violet-300 border border-violet-500/30 font-bold px-3 py-2 rounded-xl hover:bg-violet-500/25 transition-all">✓ Selesai</button>
+                </div>
+            </div>
+
             <div id="ai-chat-messages" class="p-4 space-y-4 max-h-[360px] min-h-[280px] overflow-y-auto custom-scrollbar text-xs bg-dark-950/90 leading-relaxed">
                 <div class="flex items-start space-x-2.5">
-                    <div class="w-7 h-7 rounded-lg bg-brand-primary text-white flex items-center justify-center font-bold text-xs shrink-0">✨</div>
+                    <div class="w-7 h-7 rounded-lg bg-violet-500 text-white flex items-center justify-center font-bold text-xs shrink-0">✨</div>
                     <div class="bg-dark-800/90 text-slate-200 p-3.5 rounded-2xl rounded-tl-sm border border-white/10 shadow-md break-words space-y-2">
                         <p>Halo Kak! Saya <b>Gilzz Gemini AI</b>, asisten pintar berbasis model lanjutan yang siap membantu Anda menjawab pertanyaan, memberikan analisis mendalam, maupun membantu troubleshooting sistem AMFREE Elite v6.0.</p>
                         <p class="text-slate-400 text-[11px]">Ada topik atau bantuan teknis yang ingin kita diskusikan hari ini?</p>
@@ -957,8 +984,8 @@ Dashboard Elite v6.0 aktif dengan Glowing Themes. by Gilz.</pre>
             </div>
 
             <form id="ai-chat-form" onsubmit="aiSend(event)" class="p-3 bg-dark-900/90 border-t border-white/10 flex items-center space-x-2">
-                <input type="text" id="ai-chat-input" placeholder="Tanyakan apa saja kepada Gilzz Gemini..." class="w-full bg-dark-950 border border-dark-700/80 rounded-xl px-3.5 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-brand-primary transition-all" autocomplete="off" required>
-                <button type="submit" id="ai-send-btn" class="bg-brand-primary hover:opacity-90 text-white px-3.5 py-2.5 rounded-xl transition-all shrink-0 shadow-md font-bold flex items-center justify-center">
+                <input type="text" id="ai-chat-input" placeholder="Tanyakan apa saja kepada Gilzz Gemini..." class="w-full bg-dark-950 border border-dark-700/80 rounded-xl px-3.5 py-2.5 text-xs text-slate-100 focus:outline-none focus:border-violet-400 transition-all" autocomplete="off" required>
+                <button type="submit" id="ai-send-btn" class="bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:opacity-90 text-white px-3.5 py-2.5 rounded-xl transition-all shrink-0 shadow-md font-bold flex items-center justify-center">
                     <i class="fa-solid fa-paper-plane text-xs"></i>
                 </button>
             </form>
@@ -967,7 +994,7 @@ Dashboard Elite v6.0 aktif dengan Glowing Themes. by Gilz.</pre>
 
     <!-- Footer -->
     <footer class="border-t border-white/10 mt-20 py-8 text-center text-xs text-slate-500 bg-dark-900/30 backdrop-blur-md w-full overflow-hidden">
-        <p class="mb-1.5 font-bold tracking-wide px-4">AMFREE ULTIMATE PREMIUM v6.0 &bull; Alight Motion Automation Engine <span class="text-emerald-400">[GILZ-HUB v2.2.3 (108 fitur)]</span></p>
+        <p class="mb-1.5 font-bold tracking-wide px-4">AMFREE ULTIMATE PREMIUM v6.0 &bull; Alight Motion Automation Engine <span class="text-emerald-400">[GILZ-HUB v2.2.4 (108 fitur)]</span></p>
         <p class="text-slate-600 px-4">Designed with absolute luxury & glowing elegance <span class="text-brand-primary font-bold">by gilz</span></p>
     </footer>
 
@@ -1427,8 +1454,18 @@ Dashboard Elite v6.0 aktif dengan Glowing Themes. by Gilz.</pre>
         }
 
         /* ═══ GILZZ AI — chat engine (pollinations, tanpa API key) ═══ */
-        const AI_API = 'https://text.pollinations.ai/openai';
-        const AI_SYSTEM = 'Kamu adalah "Gilzz AI", asisten pintar di web panel AMFREE Elite v6.0 (tools premium Alight Motion). Jawab santai, bahasa Indonesia, singkat dan langsung ke inti. Kamu paham fitur panel ini: tab Send (kirim magic link ke email), Verif (verifikasi link), Apply (aktifkan premium), Status (cek akun), Generate (auto bikin akun premium: email sementara + magic link + verif + premium aktif). Jangan ngaku model lain. Kalau ditanya hal teknis Alight Motion, jawab praktis. Gunakan emoji secukupnya.';
+        /* ═══ AI ENGINE v2 — nexray gpt-3.5 (andal) + pollinations (fallback).
+           pollinations free tier sering "not enough credits" → dideteksi & diskip.
+           Warna AI = ungu permanen, gak nitip ke tema web. ═══ */
+        const AI_PERSONAS = {
+            default: 'Kamu adalah "Gilzz AI", asisten pintar di web panel AMFREE Elite v6.0 (tools premium Alight Motion). Jawab santai, bahasa Indonesia, singkat dan langsung ke inti. Kamu paham fitur panel ini: Send (kirim magic link), Verif, Apply, Status, Generate (auto bikin akun premium), Music Player, Brat, AI Center. Jangan ngaku model lain. Gunakan emoji secukupnya.',
+            gaul: 'Kamu "Gilzz AI" versi paling gaul. Ngomong pakai bahasa gaul Indonesia banget (gw/lu, cuyy, wkwk). Jawab singkat, asik, ngajak ngobrol kayak temen nongkrong. Boleh bercanda tapi tetep jawab pertanyaannya dengan bener.',
+            sarkas: 'Kamu "Gilzz AI" versi nyinyir. Buka dengan 1-2 kalimat sindiran ringan yang lucu (JANGAN menyakiti), BARU kasih jawaban benerannya yang jelas dan berguna. Bahasa Indonesia santai.',
+            pro: 'Kamu "Gilzz AI" versi profesional. Jawab formal, terstruktur dengan poin-poin, ringkas, tanpa basa-basi. Bahasa Indonesia baku.',
+            kode: 'Kamu "Gilzz AI" versi expert programmer. Fokus jawab hal teknis/koding: kasih contoh kode lengkap dalam blok kode markdown, penjelasan singkat dan akurat. Bahasa Indonesia.',
+        };
+        let aiSettings = { model: 'nexray', persona: 'default' };
+        try { Object.assign(aiSettings, JSON.parse(localStorage.getItem('ai_settings') || '{}')); } catch {}
         let aiHistory = [];
 
         function toggleAiChat() {
@@ -1450,9 +1487,9 @@ Dashboard Elite v6.0 aktif dengan Glowing Themes. by Gilz.</pre>
                 ? 'max-w-[85%] bg-gradient-to-r from-brand-primary to-brand-secondary text-white rounded-2xl rounded-br-md px-3.5 py-2.5 shadow-lg'
                 : 'max-w-[85%] bg-dark-800/90 border border-white/10 text-slate-200 rounded-2xl rounded-bl-md px-3.5 py-2.5 shadow-lg';
             if (isUser) {
-                bub.innerText = html;
+                bub.textContent = html;
             } else {
-                try { bub.innerHTML = marked.parse(html); } catch { bub.innerText = html; }
+                try { bub.innerHTML = marked.parse(html); } catch { bub.textContent = html; }
             }
             div.appendChild(bub);
             wrap.appendChild(div);
@@ -1473,20 +1510,21 @@ Dashboard Elite v6.0 aktif dengan Glowing Themes. by Gilz.</pre>
             const typing = aiBubble('assistant', '<span class="inline-flex gap-1"><span class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce"></span><span class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style="animation-delay:.15s"></span><span class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style="animation-delay:.3s"></span></span>');
 
             try {
-                const res = await fetch(AI_API, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        model: 'openai',
-                        messages: [
-                            { role: 'system', content: AI_SYSTEM },
+                let reply = null;
+                if (aiSettings.model === 'simisimi') {
+                    /* mode nakal: simisimi gak paham konteks, satu-satu */
+                    const r = await fetchJson(`https://api.nexray.eu.cc/ai/simisimi?text=${encodeURIComponent(text)}`, 30000);
+                    reply = String(r?.result || r?.data || '').trim();
+                    if (!reply) throw new Error('simisimi diam');
+                } else {
+                    reply = await aiAsk(
+                        [
+                            { role: 'system', content: AI_PERSONAS[aiSettings.persona] || AI_PERSONAS.default },
                             ...aiHistory.slice(-8),
                         ],
-                    }),
-                    signal: AbortSignal.timeout(60000),
-                });
-                const data = await res.json();
-                const reply = data?.choices?.[0]?.message?.content?.trim();
+                        aiSettings.model === 'pollinations' ? ['pollinations', 'nexray'] : ['nexray', 'pollinations']
+                    );
+                }
                 typing.remove();
                 if (!reply) throw new Error('balasan kosong');
                 aiBubble('assistant', reply);
@@ -1496,6 +1534,65 @@ Dashboard Elite v6.0 aktif dengan Glowing Themes. by Gilz.</pre>
                 typing.remove();
                 aiBubble('assistant', '⚠️ ' + (err.name === 'TimeoutError' ? 'Server AI-nya lama merespon — coba ulang.' : 'Koneksi AI gagal: ' + err.message));
             }
+        }
+
+        /* ═══ AI engine chain ═══ */
+        async function aiPollinationsVia(model, messages) {
+            const res = await fetch('https://text.pollinations.ai/openai', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ model, messages }),
+                signal: AbortSignal.timeout(model === 'openai' ? 90000 : 45000),
+            });
+            const data = await res.json();
+            const t = data?.choices?.[0]?.message?.content?.trim();
+            if (!t || /pollinations\.ai|not enough credits|top-?up/i.test(t)) throw new Error('pollinations lagi kredit-minus');
+            return t;
+        }
+        async function aiNexray(messages) {
+            /* nexray gpt-3.5 cuma terima 1 text → system + riwayat di-flatten jadi prompt */
+            const sys = messages.find(m => m.role === 'system')?.content || '';
+            const convo = messages.filter(m => m.role !== 'system').map(m => (m.role === 'user' ? 'User: ' : 'AI: ') + m.content).join('\n');
+            const prompt = [sys, convo && 'Riwayat percakapan:\n' + convo, 'Balas pesan "User" terakhir di atas secara natural (jangan pakai awalan "AI:").'].filter(Boolean).join('\n\n');
+            const r = await fetchJson(`${NEX}/ai/gpt-3.5-turbo?text=${encodeURIComponent(prompt)}`, 60000);
+            const t = String(r?.result || r?.data || '').trim();
+            if (!t) throw new Error('nexray balas kosong');
+            return t;
+        }
+        async function aiAsk(messages, order) {
+            order = order || ['nexray', 'pollinations'];
+            const errs = [];
+            for (const eng of order) {
+                try {
+                    if (eng === 'nexray') return await aiNexray(messages);
+                    if (eng === 'pollinations') return await aiPollinationsVia('openai-fast', messages);
+                } catch (e) { errs.push(eng + ': ' + e.message); glog('error', 'ai (' + eng + ') ' + e.message); }
+            }
+            throw new Error('semua mesin AI lagi down — ' + errs.join(' | '));
+        }
+
+        /* ═══ gear: pengaturan AI ═══ */
+        function toggleAiSettings() {
+            const s = document.getElementById('ai-settings');
+            if (!s) return;
+            s.classList.toggle('hidden');
+            if (!s.classList.contains('hidden')) {
+                document.getElementById('ai-set-model').value = aiSettings.model;
+                document.getElementById('ai-set-persona').value = aiSettings.persona;
+            }
+        }
+        function aiSaveSetting(key, val) {
+            aiSettings[key] = val;
+            try { localStorage.setItem('ai_settings', JSON.stringify(aiSettings)); } catch {}
+        }
+        function aiClearHistory() {
+            aiHistory = [];
+            const wrap = document.getElementById('ai-chat-messages');
+            wrap.innerHTML = '<div class="flex items-start space-x-2.5">'
+                + '<div class="w-7 h-7 rounded-lg bg-violet-500 text-white flex items-center justify-center font-bold text-xs shrink-0">✨</div>'
+                + '<div class="bg-dark-800/90 text-slate-200 p-3.5 rounded-2xl rounded-tl-sm border border-white/10 shadow-md break-words space-y-2">'
+                + '<p>Sesi baru dimulai! <b>Riwayat lama udah dihapus</b> 🗑️</p>'
+                + '<p class="text-slate-400 text-[11px]">Tanya apa nih?</p></div></div>';
         }
 
         /* ═══ GENERATE AKUN PREMIUM — full otomatis ═══ */
@@ -2150,35 +2247,35 @@ Dashboard Elite v6.0 aktif dengan Glowing Themes. by Gilz.</pre>
 
           /* ═══════════ AI ═══════════ */
           ai: [
-            { id:'ai-chat', name:'AI Chat (Andal)', icon:'fa-robot', desc:'Chat AI paling stabil — tanya apa aja.', color:'cyan',
+            { id:'ai-chat', name:'AI Chat (Andal)', icon:'fa-robot', desc:'Chat AI engine baru (GPT-3.5) — tanya apa aja.', color:'violet',
               fields:[{k:'text',label:'Pertanyaan',ph:'apa itu alight motion?',type:'textarea'}],
               run: async v => ({ type:'text', title:'AI', text: await aiPollinations(v.text) }) },
-            { id:'ai-gpt', name:'GPT-3.5 Turbo', icon:'fa-bolt', desc:'Tanya ke GPT-3.5 (nexray).', color:'cyan',
+            { id:'ai-gpt', name:'GPT-3.5 Turbo', icon:'fa-bolt', desc:'Tanya ke GPT-3.5 (nexray).', color:'violet',
               fields:[{k:'text',label:'Pertanyaan',ph:'buatkan caption instagram lucu'}],
               run: async v => ({ type:'text', title:'GPT-3.5', text: await apiPick(`${NEX}/ai/gpt-3.5-turbo?text=${encodeURIComponent(v.text)}`, r => r?.result || r?.data) }) },
-            { id:'ai-simi', name:'SimSimi', icon:'fa-comment-dots', desc:'Chat bot nakal SimSimi.', color:'cyan',
+            { id:'ai-simi', name:'SimSimi', icon:'fa-comment-dots', desc:'Chat bot nakal SimSimi.', color:'violet',
               fields:[{k:'text',label:'Kata/kalimat',ph:'halo simi'}],
               run: async v => ({ type:'text', title:'SimSimi', text: await apiPick(`${NEX}/ai/simisimi?text=${encodeURIComponent(v.text)}`, r => r?.result || r?.data) }) },
-            { id:'ai-math', name:'Math Solver', icon:'fa-square-root-variable', desc:'Selesaikan soal matematika.', color:'cyan',
+            { id:'ai-math', name:'Math Solver', icon:'fa-square-root-variable', desc:'Selesaikan soal matematika.', color:'violet',
               fields:[{k:'text',label:'Soal',ph:'integral x^2 dx'}],
               run: async v => {
                 try { return { type:'text', title:'Jawaban', text: await apiPick(`${NEX}/ai/mathgpt?text=${encodeURIComponent(v.text)}`, r => r?.result || r?.data) }; }
                 catch (e) { glog('error', 'mathgpt: ' + e.message + ' → fallback pollinations'); return { type:'text', title:'Jawaban (AI)', text: await aiPollinations('Selesaikan dan jelaskan singkat: ' + v.text) }; }
               } },
-            { id:'ai-translate', name:'AI Translate', icon:'fa-language', desc:'Terjemahkan teks (auto deteksi).', color:'cyan',
+            { id:'ai-translate', name:'AI Translate', icon:'fa-language', desc:'Terjemahkan teks (auto deteksi).', color:'violet',
               fields:[{k:'text',label:'Teks',ph:'gw mau makan nasi goreng',type:'textarea'},{k:'to',label:'Ke bahasa',type:'select',options:['inggris','indonesia','jepang','korea','arab','sunda','jawa']}],
               run: async v => ({ type:'copy', title:'Hasil terjemahan', text: await aiPollinations(`Terjemahkan teks berikut ke bahasa ${v.to}, balas HANYA hasil terjemahannya tanpa penjelasan:\n\n${v.text}`) }) },
-            { id:'ai-img', name:'Text → Image', icon:'fa-wand-magic-sparkles', desc:'Generate gambar dari teks (AI).', color:'cyan',
+            { id:'ai-img', name:'Text → Image', icon:'fa-wand-magic-sparkles', desc:'Generate gambar dari teks (AI).', color:'violet',
               fields:[{k:'text',label:'Prompt',ph:'kucing astronot style anime'},{k:'ratio',label:'Rasio',type:'select',options:['1:1 (kotak)','9:16 (portrait)','16:9 (landscape)']}],
               slow:true, /* generate ±10-20 detik */
               run: async v => {
                 const dims = { '1:1 (kotak)':'768x768', '9:16 (portrait)':'720x1280', '16:9 (landscape)':'1280x720' }[v.ratio] || '768x768';
                 return { type:'image', title:'Hasil AI', url:`https://image.pollinations.ai/prompt/${encodeURIComponent(v.text)}?width=${dims.split('x')[0]}&height=${dims.split('x')[1]}&nologo=true&safe=false` };
               } },
-            { id:'ai-caption', name:'Caption Sosmed', icon:'fa-hashtag', desc:'Bikin caption IG/TikTok keren.', color:'cyan',
+            { id:'ai-caption', name:'Caption Sosmed', icon:'fa-hashtag', desc:'Bikin caption IG/TikTok keren.', color:'violet',
               fields:[{k:'text',label:'Tema caption',ph:'liburan ke pantai'},{k:'vibe',label:'Vibe',type:'select',options:['lucu','aesthetic','sindiran','motivasi','cringe','galau']}],
               run: async v => ({ type:'copy', title:'Caption', text: await aiPollinations(`Buat 3 caption ${v.vibe} bahasa gaul indonesia untuk postingan sosmed tentang: ${v.text}. Kasih emoji + 5 hashtag relevan.`) }) },
-            { id:'ai-review', name:'AI Review Kode', icon:'fa-code', desc:'Minta AI review/cari bug kode.', color:'cyan',
+            { id:'ai-review', name:'AI Review Kode', icon:'fa-code', desc:'Minta AI review/cari bug kode.', color:'violet',
               fields:[{k:'text',label:'Tempel kode',ph:'function halo(){...}',type:'textarea'}],
               run: async v => ({ type:'text', title:'Review', text: await aiPollinations('Review kode ini, cari bug & kasih perbaikan singkat (bahasa indonesia):\n\n' + v.text) }) },
           ],
@@ -2739,27 +2836,10 @@ Dashboard Elite v6.0 aktif dengan Glowing Themes. by Gilz.</pre>
 
         /* ═══ helpers ═══ */
         async function aiPollinations(prompt) {
+          /* nama lama, engine baru: nexray dulu, pollinations fallback */
           try {
-            const res = await fetch('https://text.pollinations.ai/openai', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ model: 'openai-fast', messages: [{ role: 'system', content: 'Kamu asisten web GILZ Premium Center. Jawab bahasa Indonesia santai, langsung ke inti.' }, { role: 'user', content: prompt }] }),
-              signal: AbortSignal.timeout(45000),
-            });
-            const data = await res.json();
-            let t = data?.choices?.[0]?.message?.content?.trim();
-            if (!t) {
-              /* retry sekali pakai model openai (lebih pinter, lebih lama) */
-              const res2 = await fetch('https://text.pollinations.ai/openai', {
-                method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ model: 'openai', messages: [{ role: 'user', content: prompt }] }),
-                signal: AbortSignal.timeout(90000),
-              });
-              t = (await res2.json())?.choices?.[0]?.message?.content?.trim();
-            }
-            if (!t) throw new Error('balasan kosong');
-            return t;
-          } catch (e) { glog('error', 'pollinations: ' + e.message); throw new Error('AI gagal merespon: ' + e.message); }
+            return await aiAsk([{ role: 'user', content: prompt }], ['nexray', 'pollinations']);
+          } catch (e) { throw new Error('AI gagal merespon: ' + e.message); }
         }
 
         async function apiPick(url, pick) {
