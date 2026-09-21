@@ -168,7 +168,7 @@
     <div id="g_id_onload" data-auto_prompt="false"></div>
 
     <!-- UPDATE BANNER -->
-    <div id="upd-banner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:99;background:linear-gradient(90deg,#22c55e,#16a34a);color:#fff;font:bold 11px sans-serif;text-align:center;padding:8px">✅ UPDATE TERBARU TERPASANG — GILZ-HUB v2.2.4 · AI ungu + gear pengaturan + engine GPT-3.5 baru</div>
+    <div id="upd-banner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:99;background:linear-gradient(90deg,#22c55e,#16a34a);color:#fff;font:bold 11px sans-serif;text-align:center;padding:8px">✅ UPDATE TERBARU TERPASANG — GILZ-HUB v2.2.5 · Generate 50 akun + Inbox AM + Send/Apply varhad + RCH baru</div>
 
     <!-- LOGIN MODAL (Disesuaikan dengan UI/UX login.html) -->
     <div id="login-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-dark-950/95 backdrop-blur-3xl px-4 transition-all duration-700">
@@ -494,7 +494,7 @@
                     </div>
 
                     <!-- Action Tabs -->
-                    <div id="amprem-tabs" class="grid grid-cols-2 sm:grid-cols-6 gap-2 mb-8 bg-dark-950/80 p-2 rounded-2xl border border-white/10">
+                    <div id="amprem-tabs" class="grid grid-cols-3 sm:grid-cols-7 gap-2 mb-8 bg-dark-950/80 p-2 rounded-2xl border border-white/10">
                         <button onclick="switchTab('send')" id="btn-send" class="tab-btn px-3 py-3 rounded-xl text-xs font-bold transition-all bg-gradient-to-r from-brand-primary to-brand-secondary text-white shadow-lg shadow-brand-primary/40 flex items-center justify-center space-x-2 truncate">
                             <i class="fa-solid fa-paper-plane shrink-0"></i><span class="truncate">Send</span>
                         </button>
@@ -512,6 +512,9 @@
                         </button>
                         <button onclick="switchTab('gmail')" id="btn-gmail" class="tab-btn px-3 py-3 rounded-xl text-xs font-bold transition-all text-slate-400 hover:text-white hover:bg-dark-800 flex items-center justify-center space-x-2 truncate">
                             <i class="fa-solid fa-envelope-circle-check shrink-0"></i><span class="truncate">Gmail</span>
+                        </button>
+                        <button onclick="switchTab('inbox')" id="btn-inbox" class="tab-btn px-3 py-3 rounded-xl text-xs font-bold transition-all text-slate-400 hover:text-white hover:bg-dark-800 flex items-center justify-center space-x-2 truncate">
+                            <i class="fa-solid fa-inbox shrink-0"></i><span class="truncate">Inbox AM</span>
                         </button>
                     </div>
 
@@ -543,7 +546,9 @@
                         <div id="content-apply" class="action-content space-y-5 hidden">
                             <div>
                                 <label class="block text-xs font-extrabold uppercase tracking-widest text-slate-400 mb-2.5">Email Target</label>
-                                <input type="email" id="input-apply-email" placeholder="user@gmail.com" class="w-full bg-dark-950/90 border border-white/10 rounded-2xl px-4 py-3.5 text-slate-100 text-sm">
+                                <input type="email" id="input-apply-email" placeholder="user@gmail.com" class="w-full bg-dark-950/90 border border-white/10 rounded-2xl px-4 py-3.5 text-slate-100 text-sm mb-4">
+                                <label class="block text-xs font-extrabold uppercase tracking-widest text-slate-400 mb-2.5">Magic Link (dari email)</label>
+                                <textarea id="input-apply-link" rows="3" placeholder="https://alight-creative.firebaseapp.com/__/auth/links?..." class="w-full bg-dark-950/90 border border-white/10 rounded-2xl px-4 py-3.5 text-slate-100 text-xs font-mono"></textarea>
                             </div>
                             <button onclick="executeAction('apply')" class="w-full bg-gradient-to-r from-brand-primary to-brand-secondary hover:opacity-95 text-white font-black py-4 rounded-2xl shadow-xl text-sm">Apply Premium Akun</button>
                         </div>
@@ -581,6 +586,25 @@
                             </div>
                         </div>
 
+                        <!-- 1d. INBOX AM BULK — cek email masuk akun generate -->
+                        <div id="content-inbox" class="action-content space-y-5 hidden">
+                            <div class="bg-brand-primary/5 border border-brand-primary/25 rounded-2xl p-4">
+                                <p class="text-xs text-slate-300 leading-relaxed"><i class="fa-solid fa-inbox text-brand-primary"></i> Inbox <b class="text-white">AM Bulk</b> — pilih email hasil Generate (atau ketik manual) buat lihat email yang masuk. Kalau ada notif/login dari Alight Motion, link-nya bisa <b class="text-white">disalin langsung</b> dari sini.</p>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-extrabold uppercase tracking-widest text-slate-400 mb-2.5">Pilih Email Hasil Generate</label>
+                                <select id="inbox-email-select" class="w-full bg-dark-950/90 border border-white/10 rounded-2xl px-4 py-4 text-slate-100 text-sm font-medium">
+                                    <option value="">— belum ada email tersimpan —</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-extrabold uppercase tracking-widest text-slate-400 mb-2.5">Atau Ketik Email Manual</label>
+                                <input type="email" id="inbox-email-manual" placeholder="email@domain.com" class="w-full bg-dark-950/90 border border-white/10 rounded-2xl px-4 py-3.5 text-slate-100 text-sm">
+                            </div>
+                            <button onclick="amInboxOpen()" id="btn-inbox-open" class="w-full bg-gradient-to-r from-brand-primary to-brand-secondary hover:opacity-95 text-white font-black py-4 rounded-2xl shadow-xl shadow-brand-primary/30 text-sm">Buka Inbox (auto-refresh 6 dtk)</button>
+                            <div id="inbox-list" class="space-y-3"></div>
+                        </div>
+
                         <!-- 1b. GENERATE AKUN PREMIUM (auto full) -->
                         <div id="content-generate" class="action-content space-y-5 hidden">
                             <div class="bg-brand-primary/5 border border-brand-primary/25 rounded-2xl p-4">
@@ -590,10 +614,17 @@
                                 <label class="block text-xs font-extrabold uppercase tracking-widest text-slate-400 mb-2.5">Jumlah Akun</label>
                                 <select id="gen-count" class="w-full bg-dark-950/90 border border-white/10 rounded-2xl px-4 py-4 text-slate-100 text-sm font-medium">
                                     <option value="1" selected>1 Akun</option>
-                                    <option value="2">2 Akun Sekaligus</option>
-                                    <option value="3">3 Akun Sekaligus</option>
-                                    <option value="5">5 Akun Sekaligus</option>
+                                    <option value="2">2 Akun</option>
+                                    <option value="3">3 Akun</option>
+                                    <option value="5">5 Akun</option>
+                                    <option value="10">10 Akun</option>
+                                    <option value="15">15 Akun</option>
+                                    <option value="20">20 Akun</option>
+                                    <option value="30">30 Akun</option>
+                                    <option value="40">40 Akun</option>
+                                    <option value="50">50 Akun (±25 menit)</option>
                                 </select>
+                                <p class="text-[10px] text-slate-500 mt-2">Generate jalan satu-per-satu biar gak kena rate-limit. Biarkan tab tetap terbuka — riwayat tersimpan otomatis.</p>
                             </div>
                             <button onclick="executeAction('generate')" id="btn-generate-run" class="w-full bg-gradient-to-r from-brand-primary via-brand-secondary to-brand-accent hover:opacity-95 text-white font-black py-4 rounded-2xl shadow-xl shadow-brand-primary/40 transition-all flex items-center justify-center space-x-2 text-sm tracking-wide">
                                 <i class="fa-solid fa-wand-magic-sparkles"></i><span>Generate Akun Premium</span>
@@ -994,7 +1025,7 @@ Dashboard Elite v6.0 aktif dengan Glowing Themes. by Gilz.</pre>
 
     <!-- Footer -->
     <footer class="border-t border-white/10 mt-20 py-8 text-center text-xs text-slate-500 bg-dark-900/30 backdrop-blur-md w-full overflow-hidden">
-        <p class="mb-1.5 font-bold tracking-wide px-4">AMFREE ULTIMATE PREMIUM v6.0 &bull; Alight Motion Automation Engine <span class="text-emerald-400">[GILZ-HUB v2.2.4 (108 fitur)]</span></p>
+        <p class="mb-1.5 font-bold tracking-wide px-4">AMFREE ULTIMATE PREMIUM v6.0 &bull; Alight Motion Automation Engine <span class="text-emerald-400">[GILZ-HUB v2.2.5 (108 fitur)]</span></p>
         <p class="text-slate-600 px-4">Designed with absolute luxury & glowing elegance <span class="text-brand-primary font-bold">by gilz</span></p>
     </footer>
 
@@ -1400,12 +1431,13 @@ Dashboard Elite v6.0 aktif dengan Glowing Themes. by Gilz.</pre>
         }
 
         function switchTab(action) {
-            ['send', 'verif', 'apply', 'status', 'generate', 'gmail'].forEach(act => {
+            ['send', 'verif', 'apply', 'status', 'generate', 'gmail', 'inbox'].forEach(act => {
                 document.getElementById(`content-${act}`).classList.add('hidden');
                 const btn = document.getElementById(`btn-${act}`);
                 btn.className = "tab-btn px-3 py-3 rounded-xl text-xs font-bold transition-all text-slate-400 hover:text-white hover:bg-dark-800 flex items-center justify-center space-x-2 truncate";
             });
             document.getElementById(`content-${action}`).classList.remove('hidden');
+            if (action === 'inbox') populateInboxSelect();
             const activeBtn = document.getElementById(`btn-${action}`);
             activeBtn.className = "tab-btn px-3 py-3 rounded-xl text-xs font-bold transition-all bg-gradient-to-r from-brand-primary to-brand-secondary text-white shadow-lg shadow-brand-primary/40 flex items-center justify-center space-x-2 truncate";
         }
@@ -1432,24 +1464,94 @@ Dashboard Elite v6.0 aktif dengan Glowing Themes. by Gilz.</pre>
             document.getElementById('output-box').innerText = formatResponse(title.toUpperCase(), '⚡', `┌─── ✅ *SUCCESS* ───\n├─ 📌 ${successMsg}\n╰━━━━━━━━━━━━━━━━━━━━━━━━━━━╯`);
         }
 
+        /* ═══ AMPREM ENGINE — api-varhad v2 (persis plugin amprem.js bot) ═══ */
+        const VARHAD_ERRORS = {
+            INVALID_OOB_CODE: 'Link verifikasi sudah dipakai / kadaluarsa.',
+            INVALID_IDENTIFIER: 'Email ditolak server, coba lagi.',
+            EMAIL_EXISTS: 'Email sudah terdaftar, coba lagi.',
+            TOO_MANY_ATTEMPTS_TRY_LATER: 'Terlalu banyak percobaan. Tunggu sebentar lalu coba lagi.',
+        };
+        function varhadOk(r) { return Boolean(r?.status && r?.result?.success); }
+        function varhadMsg(r) {
+            const raw = r?.result?.error?.error?.message || r?.result?.error?.message || r?.result?.message || r?.message || '';
+            for (const [code, msg] of Object.entries(VARHAD_ERRORS)) if (raw.includes(code)) return msg;
+            return raw || 'Request gagal';
+        }
+        function varhadExpiry(r) {
+            const p = r?.result?.premium?.data?.result;
+            if (!p) return null;
+            const ms = p.expiryTimeMillis || p.expireTimeMillis || p.expiry_time_millis;
+            return {
+                expiry: ms ? new Date(Number(ms)).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '-',
+                raw: p,
+            };
+        }
+        const AM_CHECKSTATUS = 'https://api.kyzznekoo.my.id/api/alightmotion/v3/checkStatus';
+
         async function executeAction(action) {
             const outputBox = document.getElementById('output-box');
             if (action === 'generate') { await executeGenerate(); return; }
+
+            /* ── SEND (varhad verif/email — persis amprem.js) ── */
             if (action === 'send') {
                 const email = document.getElementById('input-send-email').value.trim();
                 if (!email || !email.includes('@')) {
                     outputBox.innerText = formatResponse('GAGAL', '❌', "┌─── ⚠️ *EMAIL TIDAK VALID* ───\n├─ 📧 Format email salah!\n╰━━━━━━━━━━━━━━━━━━━━━━━━━━━╯");
                     return;
                 }
-                outputBox.innerText = `⏳ *PROSES SEND* ⏳\n└─ 📨 Mengirim magic link ke ${email}...\n\n⏱️ Mohon tunggu sebentar...`;
+                outputBox.innerText = `⏳ *PROSES SEND* ⏳\n└─ 📨 Mengirim magic link ke ${email}...`;
                 try {
-                    const res = await fetch(`${API_MAGIC_LINK}?email=${encodeURIComponent(email)}`);
-                    const data = await res.json();
-                    if(data.status === false) throw new Error(data.message || 'Gagal kirim');
-                    outputBox.innerText = formatResponse('MAGIC LINK SENT', '📨', `┌─── ✅ *BERHASIL* ───\n├─ 📧 Email: ${email}\n├─ 📨 Magic link terkirim!\n╰━━━━━━━━━━━━━━━━━━━━━━━━━━━╯`);
+                    const r = await fetchJson(VARHAD_SEND + encodeURIComponent(email), 45000);
+                    if (!varhadOk(r)) throw new Error(varhadMsg(r));
+                    outputBox.innerText = formatResponse('MAGIC LINK SENT', '📨', `┌─── ✅ *BERHASIL* ───\n├─ 📧 Email: ${email}\n├─ 📨 ${r?.result?.message || 'Magic link terkirim!'}\n├─ 💡 Cek inbox (tab Inbox AM kalau email generate)\n╰━━━━━━━━━━━━━━━━━━━━━━━━━━━╯`);
                 } catch(err) {
-                    outputBox.innerText = formatResponse('ERROR', '❌', `┌─── ⚠️ Gagal menghubungi server ───\n├─ ${err.message}\n╰━━━━━━━━━━━━━━━━━━━━━━━━━━━╯`);
+                    outputBox.innerText = formatResponse('ERROR', '❌', `┌─── ⚠️ Gagal mengirim ───\n├─ ${err.message}\n╰━━━━━━━━━━━━━━━━━━━━━━━━━━━╯`);
                 }
+                return;
+            }
+
+            /* ── VERIF & APPLY (varhad verif/link — verif = apply premium) ── */
+            if (action === 'verif' || action === 'apply') {
+                const email = document.getElementById(action === 'verif' ? 'input-verif-email' : 'input-apply-email').value.trim();
+                const link = (document.getElementById(action === 'verif' ? 'input-verif-link' : 'input-apply-link')?.value || '').trim();
+                if (!email || !email.includes('@')) {
+                    outputBox.innerText = formatResponse('GAGAL', '❌', "┌─── ⚠️ *EMAIL TIDAK VALID* ───\n├─ 📧 Format email salah!\n╰━━━━━━━━━━━━━━━━━━━━━━━━━━━╯");
+                    return;
+                }
+                if (!link || !link.startsWith('http')) {
+                    outputBox.innerText = formatResponse('GAGAL', '❌', "┌─── ⚠️ *LINK KOSONG* ───\n├─ 🔗 Tempel magic link dari email dulu!\n├─ 💡 Buka inbox → salin link → tempel sini\n╰━━━━━━━━━━━━━━━━━━━━━━━━━━━╯");
+                    return;
+                }
+                outputBox.innerText = `⏳ *${action === 'apply' ? 'APPLY PREMIUM' : 'VERIFIKASI'}* ⏳\n└─ 🔗 Memproses link...`;
+                try {
+                    const r = await fetchJson(VARHAD_VERIF + '?email=' + encodeURIComponent(email) + '&link=' + encodeURIComponent(link), 60000);
+                    if (!varhadOk(r)) throw new Error(varhadMsg(r));
+                    const prem = varhadExpiry(r);
+                    outputBox.innerText = formatResponse('PREMIUM AKTIF', '⭐', `┌─── ✅ *BERHASIL* ───\n├─ 📧 Email: ${email}\n├─ ⭐ Status: PREMIUM AKTIF!\n${prem?.expiry && prem.expiry !== '-' ? '├─ 📅 Berlaku s/d: ' + prem.expiry + '\n' : ''}╰━━━━━━━━━━━━━━━━━━━━━━━━━━━╯`);
+                } catch(err) {
+                    outputBox.innerText = formatResponse('ERROR', '❌', `┌─── ⚠️ Verifikasi gagal ───\n├─ ${err.message}\n╰━━━━━━━━━━━━━━━━━━━━━━━━━━━╯`);
+                }
+                return;
+            }
+
+            /* ── STATUS (kyzznekoo v3 checkStatus — kalau server belum aktif, kasih tau) ── */
+            if (action === 'status') {
+                const email = document.getElementById('input-status-email').value.trim();
+                if (!email || !email.includes('@')) {
+                    outputBox.innerText = formatResponse('GAGAL', '❌', "┌─── ⚠️ *EMAIL TIDAK VALID* ───\n├─ 📧 Format email salah!\n╰━━━━━━━━━━━━━━━━━━━━━━━━━━━╯");
+                    return;
+                }
+                outputBox.innerText = `⏳ *CEK STATUS* ⏳\n└─ 🔍 Mengecek ${email}...`;
+                try {
+                    const r = await fetchJson(AM_CHECKSTATUS + '?email=' + encodeURIComponent(email), 20000);
+                    if (r?.status === false || (!r?.data && !r?.result)) throw new Error(r?.data?.message || r?.message || 'server gak balas data');
+                    const d = r?.data || r?.result || {};
+                    const prem = d.premium || d.isPremium || d.status;
+                    outputBox.innerText = formatResponse('STATUS AKUN', '📊', `┌─── 📧 ${email} ───\n├─ ⭐ Premium: ${prem ? 'AKTIF' : 'TIDAK AKTIF'}\n${d.expiry || d.expiryTime ? '├─ 📅 s/d: ' + (d.expiry || new Date(Number(d.expiryTimeMillis || d.expiryTime)).toLocaleDateString('id-ID')) + '\n' : ''}╰━━━━━━━━━━━━━━━━━━━━━━━━━━━╯`);
+                } catch(err) {
+                    outputBox.innerText = formatResponse('CEK STATUS', '📊', `┌─── ⚠️ Belum bisa cek status ───\n├─ API checkStatus belum aktif di server.\n├─ 💡 Alternatif: pakai tab Apply dengan magic link\n├─    — hasilnya sekalian ngasih tau status premium.\n╰━━━━━━━━━━━━━━━━━━━━━━━━━━━╯`);
+                }
+                return;
             }
         }
 
@@ -1629,6 +1731,66 @@ Dashboard Elite v6.0 aktif dengan Glowing Themes. by Gilz.</pre>
             navigator.clipboard?.writeText(a.email);
         }
 
+        /* ═══ INBOX AM BULK — lihat email masuk akun generate ═══ */
+        let inboxTimer = null;
+        function populateInboxSelect() {
+            const sel = document.getElementById('inbox-email-select');
+            if (!sel) return;
+            const list = JSON.parse(localStorage.getItem('amfree_generated') || '[]');
+            const cur = sel.value;
+            sel.innerHTML = list.length
+                ? '<option value="">— pilih email —</option>' + list.slice().reverse().map(a => `<option value="${a.email}">${a.email}</option>`).join('')
+                : '<option value="">— belum ada email tersimpan —</option>';
+            if (cur) sel.value = cur;
+        }
+        async function amInboxOpen() {
+            const manual = document.getElementById('inbox-email-manual').value.trim();
+            const email = manual || document.getElementById('inbox-email-select').value;
+            const host = document.getElementById('inbox-list');
+            if (!email || !email.includes('@')) {
+                host.innerHTML = '<div class="bg-rose-500/10 border border-rose-500/30 rounded-2xl p-4 text-xs text-rose-300">pilih / ketik email dulu</div>';
+                return;
+            }
+            clearInterval(inboxTimer);
+            await amInboxRender(email);
+            inboxTimer = setInterval(() => amInboxRender(email), 6000);
+        }
+        async function amInboxRender(email) {
+            const host = document.getElementById('inbox-list');
+            host.innerHTML = '<div class="text-xs text-slate-500 p-2 animate-pulse">⏳ memuat inbox ' + email + '...</div>';
+            try {
+                const r = await fetchJson(TMPMAIL_INBOX + encodeURIComponent(email), 20000);
+                const list = r?.data?.inbox || r?.data?.emails || [];
+                window.__inboxMsgs = {};
+                if (!list.length) {
+                    host.innerHTML = '<div class="bg-dark-950/90 border border-white/10 rounded-2xl p-5 text-center text-xs text-slate-500">📭 belum ada email masuk<br><span class="text-[10px]">auto-refresh tiap 6 detik — tungguin aja...</span></div>';
+                    return;
+                }
+                host.innerHTML = list.map((m, i) => {
+                    const content = String(m.content || m.html || m.body || m.text || '').replace(/&amp;/g, '&');
+                    const lm = content.match(/href=['"]([^'"]*firebaseapp\.com[^'"]*)['"]/i) || content.match(/https?:\/\/[^\s"'<>]+/i);
+                    const link = lm ? lm[1].trim() : null;
+                    window.__inboxMsgs[i] = { content, link };
+                    const subj = m.subject || m.title || 'Email masuk';
+                    const from = m.from || m.sender || m.fromAddress || '-';
+                    return `<div class="bg-dark-950/90 border border-white/10 rounded-2xl p-4">
+                        <div class="flex items-start justify-between gap-3">
+                            <div class="min-w-0"><p class="text-xs font-bold text-slate-100 truncate">${subj}</p><p class="text-[10px] text-slate-500 truncate">dari: ${from}</p></div>
+                            <span class="text-[9px] bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 px-2 py-1 rounded-full shrink-0">BARU</span>
+                        </div>
+                        <div class="mt-3 flex flex-wrap gap-2">
+                            ${link ? `<button onclick="amInboxCopyLink(${i})" class="text-[10px] font-bold bg-brand-primary/15 text-brand-primary border border-brand-primary/30 px-3 py-2 rounded-lg hover:bg-brand-primary/25">🔗 SALIN LINK</button>` : ''}
+                            <button onclick="amInboxCopyText(${i})" class="text-[10px] font-bold bg-white/5 text-slate-300 border border-white/10 px-3 py-2 rounded-lg hover:bg-white/10">📋 SALIN ISI</button>
+                        </div>
+                    </div>`;
+                }).join('');
+            } catch (e) {
+                host.innerHTML = '<div class="bg-rose-500/10 border border-rose-500/30 rounded-2xl p-4 text-xs text-rose-300">gagal memuat inbox: ' + e.message + '</div>';
+            }
+        }
+        function amInboxCopyLink(i) { const m = window.__inboxMsgs?.[i]; if (m?.link) navigator.clipboard?.writeText(m.link); }
+        function amInboxCopyText(i) { const m = window.__inboxMsgs?.[i]; if (m) navigator.clipboard?.writeText(m.content); }
+
         async function fetchJson(url, timeoutMs = 30000) {
             const ctrl = new AbortController();
             const timer = setTimeout(() => ctrl.abort(), timeoutMs);
@@ -1652,7 +1814,7 @@ Dashboard Elite v6.0 aktif dengan Glowing Themes. by Gilz.</pre>
             logStep(box, '├─ 📧 Email: ' + email);
 
             const send = await fetchJson(VARHAD_SEND + encodeURIComponent(email), 45000);
-            if (!send?.status || !send?.result?.success) throw new Error(send?.result?.error?.error?.message || 'magic link gagal terkirim');
+            if (!varhadOk(send)) throw new Error(varhadMsg(send));
 
             let link = null;
             for (let i = 0; i < 15; i++) {
@@ -1668,14 +1830,14 @@ Dashboard Elite v6.0 aktif dengan Glowing Themes. by Gilz.</pre>
             if (!link) throw new Error('email magic link gak masuk ke inbox');
 
             const verif = await fetchJson(VARHAD_VERIF + '?email=' + encodeURIComponent(email) + '&link=' + encodeURIComponent(link), 60000);
-            if (!verif?.status || !verif?.result?.success) throw new Error(verif?.result?.error?.error?.message || 'verifikasi gagal');
+            if (!varhadOk(verif)) throw new Error(varhadMsg(verif));
 
             const prem = verif?.result?.premium?.data?.result;
             const expiry = prem?.expiryTimeMillis ? new Date(Number(prem.expiryTimeMillis)).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '-';
 
             const list = JSON.parse(localStorage.getItem('amfree_generated') || '[]');
             list.push({ email, expiry, ts: Date.now() });
-            localStorage.setItem('amfree_generated', JSON.stringify(list.slice(-20)));
+            localStorage.setItem('amfree_generated', JSON.stringify(list.slice(-100)));
             renderGenHistory();
 
             logStep(box, '╰━━━ ✅ PREMIUM AKTIF — ' + email + ' (s/d ' + expiry + ') ━━━');
@@ -1702,7 +1864,7 @@ Dashboard Elite v6.0 aktif dengan Glowing Themes. by Gilz.</pre>
             genRunning = true;
             const btn = document.getElementById('btn-generate-run');
             const box = document.getElementById('output-box');
-            const count = Math.max(1, Math.min(5, Number(document.getElementById('gen-count')?.value) || 1));
+            const count = Math.max(1, Math.min(50, Number(document.getElementById('gen-count')?.value) || 1));
             btn.disabled = true; btn.style.opacity = .6;
             box.innerText = '';
             let ok = 0;
@@ -1775,7 +1937,7 @@ Dashboard Elite v6.0 aktif dengan Glowing Themes. by Gilz.</pre>
                 const expiry = p?.expiryTimeMillis ? new Date(Number(p.expiryTimeMillis)).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '-';
                 const list = JSON.parse(localStorage.getItem('amfree_generated') || '[]');
                 list.push({ email, expiry, ts: Date.now() });
-                localStorage.setItem('amfree_generated', JSON.stringify(list.slice(-20)));
+                localStorage.setItem('amfree_generated', JSON.stringify(list.slice(-100)));
                 renderGenHistory();
                 outputBox.innerText = formatResponse('PREMIUM AKTIF', '⭐', '┌─── ✅ *PREMIUM AKTIF DI AKUN KAMU* ───\n├─ 📧 ' + email + '\n├─ ⭐ Status: PREMIUM' + (p && p.valid ? ' (valid)' : '') + '\n├─ 📅 Berlaku: s/d ' + expiry + '\n╰━━━━━━━━━━━━━━━━━━━━━━━━━━━╯\n\n➡️ Login di aplikasi Alight Motion pakai email Gmail kamu di atas.');
             } catch (err) {
@@ -2235,13 +2397,31 @@ Dashboard Elite v6.0 aktif dengan Glowing Themes. by Gilz.</pre>
                 if (!r?.ok) throw new Error(wbErr(r));
                 return { type:'text', title:'📤 Terkirim ke bot', text:`Perintah: ${v.cmd}\n\nBot bakal ngerjain di chat owner — cek Log Live buat liat hasilnya.` };
               } },
-            { id:'bc-rch', name:'React Channel (RCH)', icon:'fa-heart', desc:'Kirim reaksi emoji ke post channel WA.', color:'lime',
-              fields:[{k:'url',label:'Link post channel',ph:'https://whatsapp.com/channel/xxx/123'},{k:'emoji',label:'Emoji (bisa banyak)',ph:'🥳,🙄'}],
+            { id:'bc-rch', name:'React Channel (RCH)', icon:'fa-heart', desc:'Kirim reaksi emoji ke post channel WA (maks 4).', color:'lime',
+              fields:[{k:'url',label:'Link post channel',ph:'https://whatsapp.com/channel/xxx/123'},{k:'emoji',label:'Emoji (maks 4, pisah koma)',ph:'🥳,🙄'}],
               run: async v => {
-                const ems = [...new Intl.Segmenter(undefined, { granularity: 'grapheme' }).segment(v.emoji.replace(/,/g, ' '))].map(s => s.segment).filter(s => s.trim());
-                const r = await wbFetch('/rch', { method:'POST', body: JSON.stringify({ url: v.url, reactions: ems }) });
-                if (!r?.ok) throw new Error(wbErr(r));
-                return { type:'text', title:'✅ Reaksi terkirim', text:`${ems.join(' ')} → ${v.url}\n\n${JSON.stringify(r.result || {}).slice(0, 300)}` };
+                /* validasi persis plugin rch bot: link PESAN channel = 5 slash */
+                const clean = String(v.url).split('?')[0].replace(/\/+$/, '');
+                const n = (clean.match(/\//g) || []).length;
+                if (!/whatsapp\.com\/channel\//i.test(clean)) throw new Error('harus link WhatsApp Channel');
+                if (n < 5) throw new Error('itu link profil channel — buka pesan channel → titik 3 → Salin tautan');
+                if (n !== 5) throw new Error('link pesan channel gak valid');
+                let ems = v.emoji.includes(',')
+                  ? v.emoji.split(',').map(e => e.trim()).filter(Boolean)
+                  : [...new Intl.Segmenter(undefined, { granularity: 'grapheme' }).segment(v.emoji.replace(/,/g, ' '))].map(s => s.segment).filter(s => s.trim());
+                if (!ems.length) throw new Error('emoji-nya kosong');
+                if (ems.length > 4) throw new Error('maksimal 4 emoji');
+                /* nexadev langsung (CORS terbuka, UA browser otomatis) + retry */
+                const api = 'https://api.nexadev.my.id/api/rch/?key=DataFast13&url=' + encodeURIComponent(clean) + '&reaction=' + encodeURIComponent(ems.join(','));
+                let last;
+                for (let i = 0; i < 3; i++) {
+                  try {
+                    const r = await fetchJson(api, 60000);
+                    if (r?.status === false || r?.result?.success === false) throw new Error(r?.result?.message || r?.message || 'RCH gagal');
+                    return { type:'text', title:'✅ RCH DONE', text:'React: ' + ems.join(' ') + '\nLink: ' + clean + '\n\n> 🍭 by gilzzz • v2.0.0' };
+                  } catch (e) { last = e; if (i < 2) await new Promise(r2 => setTimeout(r2, 800 * (i + 1))); }
+                }
+                throw last;
               } },
           ],
 
